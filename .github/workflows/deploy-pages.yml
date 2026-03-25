@@ -39,12 +39,15 @@ jobs:
       #   run: npm run audit
       #   continue-on-error: true
 
+      # Custom domain at site root: create repo variable PAGES_BASE = / (Settings → Variables).
+      # Otherwise assets load from /repo/ and the app shows a blank page on your domain.
       - name: Build for GitHub Pages
         run: npm run build
         env:
           GITHUB_PAGES: 'true'
           GITHUB_REPOSITORY: ${{ github.repository }}
           VITE_GITHUB_REPO_URL: https://github.com/${{ github.repository }}
+          PAGES_BASE: ${{ vars.PAGES_BASE }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4.0.0
