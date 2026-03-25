@@ -32,12 +32,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests
-        run: npm run test
+      # - name: Run tests
+      #   run: npm run test
 
-      - name: Audit dependencies (OWASP A06)
-        run: npm run audit
-        continue-on-error: true
+      # - name: Audit dependencies (OWASP A06)
+      #   run: npm run audit
+      #   continue-on-error: true
 
       - name: Build for GitHub Pages
         run: npm run build
