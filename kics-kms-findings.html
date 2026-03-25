@@ -1,0 +1,2110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KICS Security Reference — AWS KMS & IAM</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,300&family=DM+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #09090b;
+  --bg2:      #0f1012;
+  --bg3:      #16181c;
+  --bg4:      #1e2126;
+  --border:   rgba(255,255,255,0.06);
+  --border2:  rgba(255,255,255,0.11);
+  --text:     #e8eaed;
+  --text2:    #909499;
+  --text3:    #50545c;
+  --red:      #f04444;
+  --red-dim:  rgba(240,68,68,0.11);
+  --amber:    #f59e0b;
+  --amber-dim:rgba(245,158,11,0.11);
+  --green:    #22c55e;
+  --green-dim:rgba(34,197,94,0.10);
+  --blue:     #60a5fa;
+  --blue-dim: rgba(96,165,250,0.10);
+  --teal:     #2dd4bf;
+  --mono:     'IBM Plex Mono', monospace;
+  --sans:     'DM Sans', sans-serif;
+  --serif:    'Fraunces', serif;
+  --radius:   8px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 15px; line-height: 1.6; overflow-x: hidden; }
+
+/* ── TOPNAV ── */
+.topnav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(9,9,11,0.88); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 0; padding: 0 40px; height: 52px;
+}
+.topnav-brand {
+  font-family: var(--mono); font-size: 13px; font-weight: 600;
+  color: var(--text); letter-spacing: -0.3px; margin-right: 32px; white-space: nowrap;
+  display: flex; align-items: center; gap: 10px;
+}
+.topnav-brand .dot { width: 8px; height: 8px; background: var(--red); border-radius: 50%; animation: blink 2.4s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+.topnav-links { display: flex; gap: 0; flex: 1; }
+.topnav-link {
+  padding: 0 16px; height: 52px; display: flex; align-items: center;
+  font-size: 13px; font-weight: 500; color: var(--text3); cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all .15s; user-select: none;
+  white-space: nowrap;
+}
+.topnav-link:hover { color: var(--text2); }
+.topnav-link.active { color: var(--text); border-bottom-color: var(--red); }
+.topnav-tag {
+  margin-left: auto;
+  font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: 1.5px;
+  text-transform: uppercase; padding: 4px 10px; border-radius: 4px;
+  background: var(--red-dim); color: var(--red); border: 1px solid rgba(240,68,68,0.25);
+}
+
+/* ── SECTION PANELS ── */
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ════════════════════════════════════════
+   HERO / OVERVIEW
+════════════════════════════════════════ */
+.hero {
+  padding: 80px 40px 64px;
+  border-bottom: 1px solid var(--border);
+  position: relative; overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 70% 50%, rgba(240,68,68,0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 60% at 10% 80%, rgba(96,165,250,0.03) 0%, transparent 60%);
+  pointer-events: none;
+}
+.hero-eyebrow {
+  font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--red); margin-bottom: 20px;
+  display: flex; align-items: center; gap: 10px;
+}
+.hero-eyebrow::before {
+  content: ''; display: block; width: 28px; height: 1px; background: var(--red);
+}
+.hero h1 {
+  font-family: var(--serif); font-size: clamp(36px, 5vw, 64px); font-weight: 700;
+  line-height: 1.05; letter-spacing: -1.5px; color: #fff;
+  max-width: 800px; margin-bottom: 28px;
+}
+.hero h1 em { font-style: italic; font-weight: 300; color: var(--text2); }
+.hero-desc {
+  font-size: 16px; color: var(--text2); line-height: 1.75; max-width: 620px; margin-bottom: 40px;
+}
+.hero-stats {
+  display: flex; gap: 40px; flex-wrap: wrap;
+}
+.hero-stat { display: flex; flex-direction: column; gap: 4px; }
+.hero-stat-num { font-family: var(--serif); font-size: 40px; font-weight: 700; letter-spacing: -2px; line-height: 1; color: #fff; }
+.hero-stat-num.r { color: var(--red); }
+.hero-stat-num.a { color: var(--amber); }
+.hero-stat-num.g { color: var(--green); }
+.hero-stat-label { font-family: var(--mono); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text3); }
+
+/* ── WHAT IS KICS ── */
+.overview-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px;
+  background: var(--border); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+}
+.ov-card {
+  background: var(--bg); padding: 36px 32px;
+  position: relative; overflow: hidden;
+}
+.ov-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+}
+.ov-card.red::before { background: var(--red); }
+.ov-card.amber::before { background: var(--amber); }
+.ov-card.teal::before { background: var(--teal); }
+.ov-icon {
+  font-family: var(--mono); font-size: 22px; margin-bottom: 16px;
+  display: flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; border-radius: var(--radius);
+  background: var(--bg3); border: 1px solid var(--border2);
+}
+.ov-title { font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 10px; }
+.ov-body { font-size: 13px; color: var(--text2); line-height: 1.7; }
+.ov-body code { font-family: var(--mono); font-size: 11px; background: rgba(255,255,255,0.06); padding: 1px 5px; border-radius: 3px; }
+
+/* ── HOW IT WORKS FLOW ── */
+.flow-section { padding: 56px 40px; border-bottom: 1px solid var(--border); }
+.section-label {
+  font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--text3); margin-bottom: 32px;
+  display: flex; align-items: center; gap: 12px;
+}
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.flow-steps { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.flow-step { background: var(--bg2); padding: 24px 20px; position: relative; }
+.flow-step:not(:last-child)::after {
+  content: '→';
+  position: absolute; right: -12px; top: 50%; transform: translateY(-50%);
+  font-family: var(--mono); font-size: 14px; color: var(--text3); z-index: 1;
+}
+.fs-num { font-family: var(--mono); font-size: 10px; font-weight: 600; color: var(--red); letter-spacing: 1px; margin-bottom: 10px; }
+.fs-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.fs-body { font-size: 12px; color: var(--text2); line-height: 1.6; }
+
+/* ── SEVERITY TABLE ── */
+.sev-section { padding: 56px 40px; border-bottom: 1px solid var(--border); background: var(--bg2); }
+.sev-table { width: 100%; border-collapse: collapse; margin-top: 24px; }
+.sev-table th {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--text3); padding: 8px 16px; text-align: left; border-bottom: 1px solid var(--border);
+}
+.sev-table td { padding: 14px 16px; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text2); vertical-align: top; }
+.sev-table tr:last-child td { border-bottom: none; }
+.sev-table tr:hover td { background: rgba(255,255,255,0.02); }
+.sev-pill {
+  display: inline-block; font-family: var(--mono); font-size: 9px; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase; padding: 3px 8px; border-radius: 3px;
+}
+.sev-pill.critical { background: var(--red-dim); color: var(--red); border: 1px solid rgba(240,68,68,0.3); }
+.sev-pill.high { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(245,158,11,0.3); }
+.sev-pill.medium { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(96,165,250,0.3); }
+.sev-table td:first-child { color: var(--text); font-weight: 600; }
+.sev-table td code { font-family: var(--mono); font-size: 11px; background: rgba(255,255,255,0.06); padding: 1px 5px; border-radius: 3px; }
+
+/* ── QUICK NAV CARDS ── */
+.quicknav { padding: 56px 40px; border-bottom: 1px solid var(--border); }
+.qn-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 24px; }
+.qn-card {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 24px; cursor: pointer; transition: all .2s; position: relative; overflow: hidden;
+}
+.qn-card::after {
+  content: '→'; position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
+  font-family: var(--mono); font-size: 16px; color: var(--text3); transition: all .2s;
+}
+.qn-card:hover { background: var(--bg3); border-color: var(--border2); transform: translateY(-2px); }
+.qn-card:hover::after { right: 16px; color: var(--text2); }
+.qn-cat {
+  font-family: var(--mono); font-size: 9px; font-weight: 600; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--text3); margin-bottom: 10px;
+}
+.qn-name { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.qn-desc { font-size: 12px; color: var(--text2); line-height: 1.5; padding-right: 24px; }
+.qn-badge-row { display: flex; gap: 6px; margin-top: 14px; flex-wrap: wrap; }
+.mini-badge {
+  font-family: var(--mono); font-size: 9px; font-weight: 600; letter-spacing: 1px;
+  padding: 2px 7px; border-radius: 3px; text-transform: uppercase;
+}
+.mini-badge.c { background: var(--red-dim); color: var(--red); }
+.mini-badge.h { background: var(--amber-dim); color: var(--amber); }
+.mini-badge.n { background: rgba(255,255,255,0.05); color: var(--text3); }
+
+/* ════════════════════════════════════════
+   FINDINGS PAGES (shared layout)
+════════════════════════════════════════ */
+.findings-layout { display: grid; grid-template-columns: 240px 1fr; min-height: calc(100vh - 52px); }
+
+/* Stats strip */
+.stats-strip { display: flex; gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); overflow-x: auto; }
+.stat-pill { flex: 1; min-width: 130px; padding: 12px 16px; background: var(--bg); cursor: pointer; transition: background .2s; display: flex; flex-direction: column; gap: 4px; }
+.stat-pill:hover { background: var(--bg3); }
+.stat-pill.active { background: var(--bg2); box-shadow: inset 0 -2px 0 var(--red); }
+.stat-pill.active.bh { box-shadow: inset 0 -2px 0 var(--amber); }
+.sp-id { font-family: var(--mono); font-size: 10px; color: var(--text3); }
+.sp-name { font-size: 11px; font-weight: 600; color: var(--text); line-height: 1.3; }
+.sp-badge { display: inline-block; margin-top: 4px; font-family: var(--mono); font-size: 8px; font-weight: 700; letter-spacing: 1.5px; padding: 2px 6px; border-radius: 2px; text-transform: uppercase; }
+.sp-badge.critical { background: var(--red-dim); color: var(--red); border: 1px solid rgba(240,68,68,0.25); }
+.sp-badge.high { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(245,158,11,0.25); }
+
+/* Sidebar */
+.findings-aside { border-right: 1px solid var(--border); padding: 24px 0; background: var(--bg); position: sticky; top: 52px; height: fit-content; }
+.aside-head { font-family: var(--mono); font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--text3); padding: 0 18px 12px; }
+.nav-item { display: flex; align-items: center; gap: 9px; padding: 9px 18px; cursor: pointer; border-left: 2px solid transparent; transition: all .15s; color: var(--text2); }
+.nav-item:hover { background: var(--bg2); color: var(--text); }
+.nav-item.active { border-left-color: var(--red); background: var(--bg2); color: var(--text); }
+.nav-item.active.ha { border-left-color: var(--amber); }
+.nav-item.active.ga { border-left-color: var(--green); }
+.nd { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.nd.c { background: var(--red); } .nd.h { background: var(--amber); } .nd.g { background: var(--green); }
+.nav-text { font-family: var(--mono); font-size: 11px; font-weight: 500; }
+.nav-div { height: 1px; background: var(--border); margin: 10px 18px; }
+.nav-sub { font-family: var(--mono); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--text3); padding: 4px 18px 2px; }
+
+/* Finding content */
+.findings-content { padding: 36px 44px; }
+.finding { display: none; animation: fadeUp .25s ease; }
+.finding.active { display: block; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+/* Finding header */
+.fhdr { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 28px; padding-bottom: 22px; border-bottom: 1px solid var(--border); }
+.fmeta { flex: 1; }
+.fcheck { font-family: var(--mono); font-size: 11px; color: var(--text3); margin-bottom: 6px; }
+.ftitle { font-size: 20px; font-weight: 600; color: #fff; line-height: 1.25; letter-spacing: -0.3px; }
+.fdesc { font-size: 13px; color: var(--text2); line-height: 1.75; margin-top: 10px; max-width: 640px; }
+.fdesc code, .fdesc strong { font-family: var(--mono); font-size: 11px; background: rgba(255,255,255,0.07); padding: 1px 5px; border-radius: 3px; font-weight: 400; }
+
+.stag { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 5px 11px; border-radius: 4px; flex-shrink: 0; margin-top: 4px; }
+.stag.critical { background: var(--red-dim); color: var(--red); border: 1px solid rgba(240,68,68,0.4); }
+.stag.high { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(245,158,11,0.4); }
+.stag.passed { background: var(--green-dim); color: var(--green); border: 1px solid rgba(34,197,94,0.4); }
+
+/* Tabs */
+.tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 20px; gap: 0; }
+.tab { padding: 8px 16px; font-family: var(--mono); font-size: 11px; color: var(--text3); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all .15s; user-select: none; }
+.tab:hover { color: var(--text2); }
+.tab.active { color: var(--text); border-bottom-color: var(--red); }
+.tc { display: none; }
+.tc.active { display: block; }
+
+/* Alert */
+.alert { border-radius: 6px; padding: 12px 16px; font-family: var(--mono); font-size: 11.5px; line-height: 1.65; margin-bottom: 18px; display: flex; gap: 10px; align-items: flex-start; }
+.alert.warn { background: rgba(245,158,11,0.07); border: 1px solid rgba(245,158,11,0.22); color: var(--amber); }
+.alert.info { background: var(--blue-dim); border: 1px solid rgba(96,165,250,0.22); color: var(--blue); }
+.alert code { font-family: var(--mono); font-size: 10.5px; background: rgba(255,255,255,0.08); padding: 1px 4px; border-radius: 2px; }
+
+/* Code diff grid */
+.diff-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.diff-grid.s { grid-template-columns: 1fr; }
+.cp { border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
+.ch { display: flex; align-items: center; gap: 7px; padding: 8px 14px; font-family: var(--mono); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; border-bottom: 1px solid var(--border); justify-content: space-between; }
+.ch.bad { background: rgba(240,68,68,0.06); color: var(--red); }
+.ch.good { background: rgba(34,197,94,0.06); color: var(--green); }
+.ch.neu { background: var(--bg3); color: var(--text2); }
+.cb { background: var(--bg2); padding: 16px 18px; font-family: var(--mono); font-size: 12px; line-height: 1.85; overflow-x: auto; }
+.line { display: flex; }
+.ln { color: var(--text3); min-width: 26px; user-select: none; flex-shrink: 0; font-size: 10.5px; }
+.cl { white-space: pre; }
+.cl.lb { color: var(--red); background: rgba(240,68,68,0.08); border-radius: 2px; padding: 0 3px; margin: 0 -3px; }
+.cl.lg { color: var(--green); background: rgba(34,197,94,0.08); border-radius: 2px; padding: 0 3px; margin: 0 -3px; }
+.cl.lc { color: var(--text3); font-style: italic; }
+.cl.kw { color: #c792ea; } .cl.st { color: #86efac; } .cl.ky { color: #7dd3fc; }
+
+/* Info grid */
+.ig { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+.ig.s { grid-template-columns: 1fr; }
+.ib { background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; padding: 16px 18px; }
+.ib.warn { border-color: rgba(245,158,11,0.2); }
+.ib.infob { border-color: rgba(96,165,250,0.2); }
+.ib.greenb { border-color: rgba(34,197,94,0.2); }
+.ibt { font-family: var(--mono); font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--text3); margin-bottom: 10px; }
+.ib ul { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+.ib li { font-size: 12px; color: var(--text2); line-height: 1.55; display: flex; align-items: flex-start; gap: 7px; }
+.ib li::before { content: '→'; color: var(--text3); flex-shrink: 0; font-family: var(--mono); font-size: 10px; margin-top: 2px; }
+.ib li code { font-family: var(--mono); font-size: 10px; background: rgba(255,255,255,0.06); padding: 1px 4px; border-radius: 2px; }
+
+/* Checkov output */
+.cko { background: #050507; border: 1px solid var(--border); border-radius: 6px; padding: 16px 18px; font-family: var(--mono); font-size: 12px; line-height: 1.9; overflow-x: auto; white-space: pre; }
+.cp-fail { color: var(--red); } .cp-dim { color: var(--text3); } .cp-w { color: #fff; } .cp-am { color: var(--amber); }
+
+/* Copy button */
+.copy-btn { background: rgba(255,255,255,0.04); border: 1px solid var(--border2); color: var(--text3); font-family: var(--mono); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; padding: 3px 9px; border-radius: 4px; cursor: pointer; transition: all .15s; }
+.copy-btn:hover { background: rgba(255,255,255,0.09); color: var(--text); }
+.copy-btn.copied { color: var(--green); border-color: rgba(34,197,94,0.4); }
+
+/* Summary page */
+.sum-hero { padding: 48px 44px 36px; border-bottom: 1px solid var(--border); }
+.sum-hero h2 { font-family: var(--serif); font-size: 32px; font-weight: 700; color: #fff; letter-spacing: -0.5px; margin-bottom: 10px; }
+.sum-hero p { font-size: 14px; color: var(--text2); max-width: 560px; line-height: 1.7; }
+.sum-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
+.sum-stat { background: var(--bg); padding: 28px 32px; }
+.sum-stat-n { font-family: var(--serif); font-size: 48px; font-weight: 700; letter-spacing: -3px; line-height: 1; margin-bottom: 6px; }
+.sum-stat-n.r{color:var(--red)}.sum-stat-n.a{color:var(--amber)}.sum-stat-n.g{color:var(--green)}.sum-stat-n.b{color:var(--blue)}
+.sum-stat-l { font-family: var(--mono); font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--text3); }
+.sum-code { padding: 32px 44px; }
+.ps { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 20px 24px; font-family: var(--mono); font-size: 12px; line-height: 2.1; margin-top: 24px; }
+.ps-l { display: flex; align-items: center; gap: 10px; }
+.ps-l:not(:last-child) { border-bottom: 1px solid var(--border); }
+.ps-d { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.ps-d.p { background: var(--green); }
+.ps-cat { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--text3); min-width: 100px; padding: 8px 0; }
+
+/* ════════════════════════════════════════
+   GITLAB CI PIPELINE INTERACTIVE
+════════════════════════════════════════ */
+.pl-page{padding:0}
+.pl-hero{padding:52px 40px 40px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,rgba(252,97,27,0.04) 0%,rgba(96,165,250,0.03) 100%);position:relative;overflow:hidden}
+.pl-hero::before{content:'';position:absolute;top:-60px;right:-60px;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(252,97,27,0.06) 0%,transparent 70%);pointer-events:none}
+.pl-hero-tag{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#fc611b;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.pl-hero-tag::before{content:'';display:block;width:24px;height:1px;background:#fc611b}
+.pl-hero h2{font-family:var(--serif);font-size:clamp(26px,3vw,44px);font-weight:700;color:#fff;letter-spacing:-1px;line-height:1.1;margin-bottom:14px}
+.pl-hero p{font-size:14px;color:var(--text2);max-width:580px;line-height:1.75}
+.pl-simulator{padding:40px;border-bottom:1px solid var(--border)}
+.pl-sim-label{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--text3);margin-bottom:28px;display:flex;align-items:center;gap:12px}
+.pl-sim-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.mr-bar{display:flex;align-items:center;gap:14px;padding:14px 20px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:32px}
+.mr-bar-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#4f46e5);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;color:#fff;font-weight:600;flex-shrink:0}
+.mr-bar-text{flex:1;min-width:0}
+.mr-bar-title{font-size:13px;font-weight:600;color:var(--text)}
+.mr-bar-meta{font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px}
+.mr-bar-branch{font-family:var(--mono);font-size:10px;background:rgba(96,165,250,0.1);color:var(--blue);border:1px solid rgba(96,165,250,0.2);padding:3px 8px;border-radius:4px}
+.run-btn{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.5px;padding:8px 18px;border-radius:6px;border:none;cursor:pointer;background:#fc611b;color:#fff;transition:all .2s;flex-shrink:0}
+.run-btn:hover{background:#e5561a;transform:translateY(-1px)}
+.run-btn:disabled{background:var(--bg4);color:var(--text3);cursor:not-allowed;transform:none}
+.scenario-bar{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap}
+.sc-btn{font-family:var(--mono);font-size:11px;font-weight:600;padding:7px 14px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;transition:all .15s}
+.sc-btn:hover{border-color:var(--border2);color:var(--text)}
+.sc-btn.active{border-color:var(--blue);background:var(--blue-dim);color:var(--blue)}
+.sc-btn.active.fail-sc{border-color:var(--red);background:var(--red-dim);color:var(--red)}
+.sc-btn.active.pass-sc{border-color:var(--green);background:var(--green-dim);color:var(--green)}
+.pipeline-track{display:flex;align-items:flex-start;gap:0;margin-bottom:32px;position:relative}
+.pipeline-track::before{content:'';position:absolute;top:28px;left:28px;right:28px;height:2px;background:var(--border);z-index:0}
+.pl-stage{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;position:relative;z-index:1;cursor:pointer;user-select:none}
+.pl-stage-bubble{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;border:2px solid var(--border);background:var(--bg);transition:all .35s;position:relative}
+.pl-stage.running .pl-stage-bubble{border-color:var(--amber);background:var(--bg3);animation:stagePulse 1s ease-in-out infinite}
+.pl-stage.passed .pl-stage-bubble{border-color:var(--green);background:rgba(34,197,94,0.08)}
+.pl-stage.failed .pl-stage-bubble{border-color:var(--red);background:rgba(240,68,68,0.08)}
+.pl-stage.active-view .pl-stage-bubble{border-color:var(--blue);box-shadow:0 0 0 4px rgba(96,165,250,0.12)}
+@keyframes stagePulse{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,0.4)}50%{box-shadow:0 0 0 8px rgba(245,158,11,0)}}
+.pl-stage-name{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:0.5px;color:var(--text3);text-align:center;transition:color .2s}
+.pl-stage.running .pl-stage-name{color:var(--amber)}
+.pl-stage.passed .pl-stage-name{color:var(--green)}
+.pl-stage.failed .pl-stage-name{color:var(--red)}
+.pl-stage.active-view .pl-stage-name{color:var(--blue)}
+.pl-stage-dur{font-family:var(--mono);font-size:9px;color:var(--text3);text-align:center;min-height:14px}
+.stage-detail{background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:32px;min-height:300px}
+.sd-hdr{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--border);background:var(--bg3)}
+.sd-icon{font-size:16px}
+.sd-title{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--text);flex:1}
+.sd-badge{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:3px 9px;border-radius:3px}
+.sd-badge.running{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,158,11,0.3)}
+.sd-badge.passed{background:var(--green-dim);color:var(--green);border:1px solid rgba(34,197,94,0.3)}
+.sd-badge.failed{background:var(--red-dim);color:var(--red);border:1px solid rgba(240,68,68,0.3)}
+.sd-badge.pending{background:rgba(255,255,255,0.04);color:var(--text3);border:1px solid var(--border)}
+.sd-dur{font-family:var(--mono);font-size:11px;color:var(--text3)}
+.sd-body{padding:20px}
+.sd-view{display:none}
+.sd-view.active{display:block}
+.term{background:#050507;border-radius:6px;padding:14px 16px;font-family:var(--mono);font-size:12px;line-height:1.9;overflow:hidden;position:relative}
+.term-line{display:flex;gap:10px;opacity:0;transform:translateY(3px);transition:opacity .28s,transform .28s}
+.term-line.vis{opacity:1;transform:translateY(0)}
+.term-t{color:var(--text3);flex-shrink:0;min-width:54px}
+.term-s{color:var(--text2);flex:1;white-space:pre-wrap;word-break:break-all}
+.term-s.g{color:var(--green)}.term-s.r{color:var(--red)}.term-s.a{color:var(--amber)}.term-s.b{color:var(--blue)}.term-s.w{color:#fff}.term-s.dim{color:var(--text3)}
+.term-cursor{display:inline-block;width:7px;height:13px;background:var(--green);vertical-align:middle;animation:cur 1s step-end infinite}
+@keyframes cur{0%,100%{opacity:1}50%{opacity:0}}
+.yaml-editor{background:#050507;border-radius:6px;border:1px solid var(--border);overflow:hidden}
+.yaml-editor-hdr{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--border);background:var(--bg3)}
+.yaml-dots{display:flex;gap:5px}
+.yaml-dot{width:10px;height:10px;border-radius:50%}
+.yaml-dot.r{background:#ff5f57}.yaml-dot.a{background:#ffbd2e}.yaml-dot.g{background:#28ca41}
+.yaml-fname{font-family:var(--mono);font-size:11px;color:var(--text2);flex:1}
+.yaml-body{padding:16px;font-family:var(--mono);font-size:12px;line-height:1.85;overflow-x:auto}
+.yl{display:flex;gap:0}
+.yl-n{color:var(--text3);min-width:28px;flex-shrink:0;font-size:10.5px;user-select:none}
+.yl-k{color:#7dd3fc;white-space:pre}.yl-v{color:#86efac;white-space:pre}.yl-c{color:var(--text3);font-style:italic;white-space:pre}.yl-s{color:var(--amber);white-space:pre}.yl-p{color:#c792ea;white-space:pre}.yl-plain{color:var(--text2);white-space:pre}
+.yl-hl{background:rgba(96,165,250,0.07);border-left:2px solid var(--blue);margin:0 -16px;padding:0 14px}
+.findings-tbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}
+.findings-tbl th{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);padding:6px 10px;text-align:left;border-bottom:1px solid var(--border)}
+.findings-tbl td{padding:9px 10px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:top}
+.findings-tbl tr:last-child td{border-bottom:none}
+.findings-tbl tr:hover td{background:rgba(255,255,255,0.02);cursor:pointer}
+.ftbl-sev{display:inline-block;font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:2px 6px;border-radius:2px}
+.ftbl-sev.C{background:var(--red-dim);color:var(--red);border:1px solid rgba(240,68,68,0.3)}
+.ftbl-sev.H{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,158,11,0.3)}
+.ftbl-sev.M{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(96,165,250,0.3)}
+.ftbl-id{color:var(--text);font-weight:600}.ftbl-file{color:var(--text3);font-size:10.5px}
+.mr-gate{border-radius:8px;padding:20px 24px;display:flex;align-items:flex-start;gap:16px;margin-top:16px}
+.mr-gate.blocked{background:rgba(240,68,68,0.07);border:1px solid rgba(240,68,68,0.25)}
+.mr-gate.warn-g{background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.25)}
+.mr-gate.clear{background:rgba(34,197,94,0.07);border:1px solid rgba(34,197,94,0.25)}
+.mr-gate-icon{font-size:28px;flex-shrink:0}
+.mr-gate-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px}
+.mr-gate-body{font-size:12px;color:var(--text2);line-height:1.6}
+.step-explainer{border-top:1px solid var(--border);padding:40px}
+.step-explainer .pl-sim-label{margin-bottom:20px}
+.step-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:16px}
+.step-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:20px;cursor:pointer;transition:all .2s}
+.step-card:hover{border-color:var(--border2);background:var(--bg3)}
+.step-card.active{border-color:var(--blue);background:rgba(96,165,250,0.05)}
+.step-num{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
+.step-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:5px}
+.step-body{font-size:12px;color:var(--text2);line-height:1.6}
+.step-body code{font-family:var(--mono);font-size:10.5px;background:rgba(255,255,255,0.06);padding:1px 4px;border-radius:2px}
+.step-detail{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:22px;display:none;animation:fadeUp .2s ease}
+.step-detail.active{display:block}
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .overview-grid,.flow-steps,.qn-grid,.sum-stats{grid-template-columns:1fr}
+  .findings-layout{grid-template-columns:1fr}
+  .findings-aside{display:none}
+  .hero,.flow-section,.quicknav,.sev-section,.sum-code,.sum-hero{padding-left:20px;padding-right:20px}
+  .topnav{padding:0 20px}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════ TOP NAV ══════════ -->
+<nav class="topnav">
+  <div class="topnav-brand">
+    <span class="dot"></span>
+    KICS Security Reference
+  </div>
+  <div class="topnav-links">
+    <div class="topnav-link active" onclick="switchPanel('overview',this)">Overview</div>
+    <div class="topnav-link" onclick="switchPanel('pipeline',this)">GitLab CI Pipeline</div>
+    <div class="topnav-link" onclick="switchPanel('kms',this)">KMS Key Policy</div>
+    <div class="topnav-link" onclick="switchPanel('iam',this)">IAM / KMS Actions</div>
+    <div class="topnav-link" onclick="switchPanel('iamcrit',this)">IAM Criticals</div>
+    <div class="topnav-link" onclick="switchPanel('summary',this)">All-Passing Template</div>
+  </div>
+  <span class="topnav-tag">Terraform · AWS</span>
+</nav>
+
+<!-- ══════════════════════════════════════
+     PANEL: OVERVIEW
+══════════════════════════════════════ -->
+<div class="panel active" id="panel-overview">
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-eyebrow">Keeping Infrastructure as Code Secure</div>
+    <h1>AWS KMS &amp; IAM<br><em>Security Findings</em><br>Reference</h1>
+    <p class="hero-desc">
+      A practical reference for understanding how KICS and Checkov scan Terraform configurations for AWS KMS and IAM misconfigurations — what triggers each finding, why it matters, and exactly how to fix it.
+    </p>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span class="hero-stat-num r">9</span>
+        <span class="hero-stat-label">Critical checks</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-num a">2</span>
+        <span class="hero-stat-label">High checks</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-num g">14</span>
+        <span class="hero-stat-label">Total checks covered</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-num" style="color:var(--blue)">4</span>
+        <span class="hero-stat-label">Resource types</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- What is KICS -->
+  <div class="overview-grid">
+    <div class="ov-card red">
+      <div class="ov-icon">🔍</div>
+      <div class="ov-title">What is KICS?</div>
+      <div class="ov-body">
+        <strong style="color:var(--text)">Keeping Infrastructure as Code Secure</strong> (KICS) is an open-source static analysis engine by Checkmarx. It scans Terraform, CloudFormation, Kubernetes, Ansible and more — finding security misconfigurations before they reach production.<br><br>
+        Checkov is the Bridgecrew/Prisma Cloud equivalent and shares most check IDs. Both are widely used in CI/CD pipelines for policy-as-code enforcement.
+      </div>
+    </div>
+    <div class="ov-card amber">
+      <div class="ov-icon">⚡</div>
+      <div class="ov-title">How does it scan?</div>
+      <div class="ov-body">
+        KICS reads your <code>.tf</code> source files statically — no AWS API calls, no plan needed. It maps resource blocks to a library of Rego-based queries and flags patterns that match known misconfigurations.<br><br>
+        This means it catches issues at authoring time, before <code>terraform plan</code> or <code>apply</code> runs. In GitLab CI you run it as a SAST job on every merge request.
+      </div>
+    </div>
+    <div class="ov-card teal">
+      <div class="ov-icon">🏦</div>
+      <div class="ov-title">Why it matters for financial services</div>
+      <div class="ov-body">
+        KMS and IAM misconfigurations are among the most frequently cited findings in cloud security audits. Many map directly to regulatory controls:<br><br>
+        <strong style="color:var(--text)">PCI-DSS 3.6.4</strong> — key rotation · <strong style="color:var(--text)">CIS AWS 1.16</strong> — no admin wildcards · <strong style="color:var(--text)">SOC 2 CC6.3</strong> — least privilege · <strong style="color:var(--text)">PCI-DSS 7.1.2</strong> — minimal access
+      </div>
+    </div>
+  </div>
+
+  <!-- How it works in CI -->
+  <section class="flow-section">
+    <div class="section-label">How KICS fits into a CI/CD pipeline</div>
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="fs-num">01 / AUTHOR</div>
+        <div class="fs-title">Write Terraform</div>
+        <div class="fs-body">Developer writes <code>.tf</code> files and opens a merge request against the trunk branch.</div>
+      </div>
+      <div class="flow-step">
+        <div class="fs-num">02 / SCAN</div>
+        <div class="fs-title">KICS SAST job</div>
+        <div class="fs-body">GitLab CI pipeline runs <code>kics scan -p . --report-formats json</code> on the changed files. No AWS credentials needed.</div>
+      </div>
+      <div class="flow-step">
+        <div class="fs-num">03 / GATE</div>
+        <div class="fs-title">Block or warn</div>
+        <div class="fs-body">Critical findings block the MR from merging. High findings raise a warning. Findings are published to the GitLab Security Dashboard.</div>
+      </div>
+      <div class="flow-step">
+        <div class="fs-num">04 / FIX</div>
+        <div class="fs-title">Remediate &amp; re-scan</div>
+        <div class="fs-body">Developer applies the fix shown in this reference, pushes a new commit, and the pipeline re-runs automatically.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Severity reference -->
+  <section class="sev-section">
+    <div class="section-label">Severity levels and what they mean</div>
+    <table class="sev-table">
+      <thead>
+        <tr>
+          <th>Severity</th>
+          <th>KICS definition</th>
+          <th>Pipeline behaviour</th>
+          <th>Example checks covered here</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="sev-pill critical">Critical</span></td>
+          <td>Direct path to account compromise, data exfiltration, or privilege escalation with no additional precondition</td>
+          <td>MR blocked — must be fixed or explicitly risk-accepted before merge</td>
+          <td><code>CKV_AWS_1</code> · <code>CKV_AWS_111</code> · <code>CKV_AWS_107</code> · <code>CKV_AWS_108</code> · <code>CKV_AWS_109</code> · <code>CKV_AWS_110</code> · <code>CKV2_AWS_6</code> · <code>CKV_AWS_356</code> · <code>CKV2_AWS_40</code></td>
+        </tr>
+        <tr>
+          <td><span class="sev-pill high">High</span></td>
+          <td>Significant risk or compliance violation that substantially increases attack surface or breaks regulatory controls</td>
+          <td>Warning comment on MR; tracked in backlog; must be resolved within sprint</td>
+          <td><code>CKV_AWS_7</code> · <code>CKV_AWS_227</code></td>
+        </tr>
+        <tr>
+          <td><span class="sev-pill medium">Medium</span></td>
+          <td>Best-practice deviation with limited direct exploit path</td>
+          <td>Informational — tracked but does not block merge</td>
+          <td><code>CKV_AWS_49</code> (context-dependent) · tag / logging checks</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Quick-navigate cards -->
+  <section class="quicknav">
+    <div class="section-label">Navigate to a finding category</div>
+    <div class="qn-grid">
+      <div class="qn-card" onclick="switchPanel('kms', document.querySelectorAll('.topnav-link')[1])">
+        <div class="qn-cat">Section 01</div>
+        <div class="qn-name">KMS Key Policy</div>
+        <div class="qn-desc">Findings on <code>aws_kms_key</code> and <code>aws_kms_key_policy</code> — wildcard principals, wildcard actions, missing policy blocks, rotation, and key state.</div>
+        <div class="qn-badge-row">
+          <span class="mini-badge c">CKV_AWS_111</span>
+          <span class="mini-badge c">CKV_AWS_356</span>
+          <span class="mini-badge c">CKV2_AWS_6</span>
+          <span class="mini-badge h">CKV_AWS_7</span>
+          <span class="mini-badge h">CKV_AWS_227</span>
+        </div>
+      </div>
+      <div class="qn-card" onclick="switchPanel('iam', document.querySelectorAll('.topnav-link')[2])">
+        <div class="qn-cat">Section 02</div>
+        <div class="qn-name">IAM Policy — KMS Actions</div>
+        <div class="qn-desc">Findings on <code>aws_iam_policy_document</code> where KMS-specific actions are overly broad — including a known false-positive caveat for <code>CKV_AWS_356</code>.</div>
+        <div class="qn-badge-row">
+          <span class="mini-badge c">CKV_AWS_49</span>
+          <span class="mini-badge c">CKV_AWS_356</span>
+          <span class="mini-badge h">CKV_AWS_111</span>
+        </div>
+      </div>
+      <div class="qn-card" onclick="switchPanel('iamcrit', document.querySelectorAll('.topnav-link')[3])">
+        <div class="qn-cat">Section 03</div>
+        <div class="qn-name">IAM Criticals</div>
+        <div class="qn-desc">The six most severe IAM findings — admin wildcards, credentials exposure, data exfiltration, permissions management, privilege escalation, and full IAM control.</div>
+        <div class="qn-badge-row">
+          <span class="mini-badge c">CKV_AWS_1</span>
+          <span class="mini-badge c">CKV_AWS_107</span>
+          <span class="mini-badge c">CKV_AWS_108</span>
+          <span class="mini-badge c">CKV_AWS_109</span>
+          <span class="mini-badge n">+2 more</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /overview -->
+
+<!-- ══════════════════════════════════════
+     PANEL: GITLAB CI PIPELINE
+══════════════════════════════════════ -->
+<div class="panel" id="panel-pipeline">
+<div class="pl-page">
+
+  <!-- Hero -->
+  <div class="pl-hero">
+    <div class="pl-hero-tag">Interactive walkthrough</div>
+    <h2>KICS in a GitLab CI Pipeline</h2>
+    <p>See exactly how KICS integrates into a Terraform merge request workflow — from the <code style="font-family:var(--mono);font-size:12px;background:rgba(255,255,255,0.07);padding:1px 5px;border-radius:3px">.gitlab-ci.yml</code> job definition, through the scan run, to the MR gate decision. Choose a scenario and run the simulation.</p>
+  </div>
+
+  <div class="pl-simulator">
+
+    <!-- Scenario selector -->
+    <div class="pl-sim-label">Choose a scenario to simulate</div>
+    <div class="scenario-bar">
+      <button class="sc-btn active fail-sc" onclick="setScenario('critical',this)">🔴 Critical finding — MR blocked</button>
+      <button class="sc-btn" onclick="setScenario('high',this)">🟡 High finding — warning only</button>
+      <button class="sc-btn pass-sc" onclick="setScenario('clean',this)">🟢 Clean scan — MR approved</button>
+    </div>
+
+    <!-- MR bar -->
+    <div class="mr-bar">
+      <div class="mr-bar-avatar">MO</div>
+      <div class="mr-bar-text">
+        <div class="mr-bar-title" id="mr-title">feat: add KMS key for app-prod encryption</div>
+        <div class="mr-bar-meta" id="mr-meta">mo → main · 3 files changed · <span id="mr-branch" class="mr-bar-branch">feature/kms-key-app-prod</span></div>
+      </div>
+      <button class="run-btn" id="run-btn" onclick="runPipeline()">▶ Run pipeline</button>
+    </div>
+
+    <!-- Pipeline stage track -->
+    <div class="pipeline-track" id="pipeline-track">
+      <div class="pl-stage pending" id="stage-validate" onclick="viewStage('validate')">
+        <div class="pl-stage-bubble">✓</div>
+        <div class="pl-stage-name">validate</div>
+        <div class="pl-stage-dur" id="dur-validate"></div>
+      </div>
+      <div class="pl-stage pending" id="stage-sast" onclick="viewStage('sast')">
+        <div class="pl-stage-bubble">🔍</div>
+        <div class="pl-stage-name">sast</div>
+        <div class="pl-stage-dur" id="dur-sast"></div>
+      </div>
+      <div class="pl-stage pending" id="stage-plan" onclick="viewStage('plan')">
+        <div class="pl-stage-bubble">📋</div>
+        <div class="pl-stage-name">plan</div>
+        <div class="pl-stage-dur" id="dur-plan"></div>
+      </div>
+      <div class="pl-stage pending" id="stage-gate" onclick="viewStage('gate')">
+        <div class="pl-stage-bubble">🔒</div>
+        <div class="pl-stage-name">security-gate</div>
+        <div class="pl-stage-dur" id="dur-gate"></div>
+      </div>
+    </div>
+
+    <!-- Stage detail panel -->
+    <div class="stage-detail" id="stage-detail">
+      <div class="sd-hdr">
+        <span class="sd-icon" id="sd-icon">💤</span>
+        <span class="sd-title" id="sd-title">Select a stage above or run the pipeline</span>
+        <span class="sd-badge pending" id="sd-badge">pending</span>
+        <span class="sd-dur" id="sd-dur"></span>
+      </div>
+      <div class="sd-body">
+
+        <!-- Welcome state -->
+        <div class="sd-view active" id="view-welcome">
+          <p style="color:var(--text2);font-size:13px;line-height:1.75;margin-bottom:20px">Choose a scenario above and click <strong style="color:var(--text)">Run pipeline</strong> to see how KICS processes a Terraform merge request in GitLab CI. Click any completed stage bubble to inspect its output.</p>
+          <div class="yaml-editor">
+            <div class="yaml-editor-hdr"><div class="yaml-dots"><span class="yaml-dot r"></span><span class="yaml-dot a"></span><span class="yaml-dot g"></span></div><span class="yaml-fname">.gitlab-ci.yml — KICS job definition</span></div>
+            <div class="yaml-body">
+<div class="yl"><span class="yl-n">1</span><span class="yl-k">include:</span></div>
+<div class="yl"><span class="yl-n">2</span><span class="yl-plain">  - </span><span class="yl-k">template: </span><span class="yl-s">Security/SAST-IaC.gitlab-ci.yml</span></div>
+<div class="yl"><span class="yl-n">3</span><span class="yl-plain"></span></div>
+<div class="yl"><span class="yl-n">4</span><span class="yl-k">stages:</span></div>
+<div class="yl"><span class="yl-n">5</span><span class="yl-plain">  - </span><span class="yl-v">validate</span></div>
+<div class="yl"><span class="yl-n">6</span><span class="yl-plain">  - </span><span class="yl-v">sast</span></div>
+<div class="yl"><span class="yl-n">7</span><span class="yl-plain">  - </span><span class="yl-v">plan</span></div>
+<div class="yl"><span class="yl-n">8</span><span class="yl-plain">  - </span><span class="yl-v">security-gate</span></div>
+<div class="yl"><span class="yl-n">9</span><span class="yl-plain"></span></div>
+<div class="yl yl-hl"><span class="yl-n">10</span><span class="yl-k">kics-iac-sast:</span></div>
+<div class="yl yl-hl"><span class="yl-n">11</span><span class="yl-plain">  </span><span class="yl-k">stage: </span><span class="yl-v">sast</span></div>
+<div class="yl yl-hl"><span class="yl-n">12</span><span class="yl-plain">  </span><span class="yl-k">image: </span><span class="yl-s">checkmarx/kics:latest</span></div>
+<div class="yl yl-hl"><span class="yl-n">13</span><span class="yl-plain">  </span><span class="yl-k">variables:</span></div>
+<div class="yl yl-hl"><span class="yl-n">14</span><span class="yl-plain">    </span><span class="yl-k">KICS_QUERIES_PATH: </span><span class="yl-s">"assets/queries/terraform/aws"</span></div>
+<div class="yl yl-hl"><span class="yl-n">15</span><span class="yl-plain">  </span><span class="yl-k">script:</span></div>
+<div class="yl yl-hl"><span class="yl-n">16</span><span class="yl-plain">    - </span><span class="yl-s">kics scan</span></div>
+<div class="yl yl-hl"><span class="yl-n">17</span><span class="yl-plain">        </span><span class="yl-s">--path .</span></div>
+<div class="yl yl-hl"><span class="yl-n">18</span><span class="yl-plain">        </span><span class="yl-s">--report-formats json,html</span></div>
+<div class="yl yl-hl"><span class="yl-n">19</span><span class="yl-plain">        </span><span class="yl-s">--output-path reports/</span></div>
+<div class="yl yl-hl"><span class="yl-n">20</span><span class="yl-plain">        </span><span class="yl-s">--fail-on CRITICAL,HIGH</span></div>
+<div class="yl"><span class="yl-n">21</span><span class="yl-plain">  </span><span class="yl-k">artifacts:</span></div>
+<div class="yl"><span class="yl-n">22</span><span class="yl-plain">    </span><span class="yl-k">reports:</span></div>
+<div class="yl"><span class="yl-n">23</span><span class="yl-plain">      </span><span class="yl-k">sast: </span><span class="yl-s">reports/kics-results.json</span></div>
+<div class="yl"><span class="yl-n">24</span><span class="yl-plain">    </span><span class="yl-k">paths:</span></div>
+<div class="yl"><span class="yl-n">25</span><span class="yl-plain">      - </span><span class="yl-s">reports/</span></div>
+<div class="yl"><span class="yl-n">26</span><span class="yl-plain">    </span><span class="yl-k">when: </span><span class="yl-v">always</span></div>
+<div class="yl"><span class="yl-n">27</span><span class="yl-plain">  </span><span class="yl-k">rules:</span></div>
+<div class="yl"><span class="yl-n">28</span><span class="yl-plain">    - </span><span class="yl-k">if: </span><span class="yl-s">'$CI_PIPELINE_SOURCE == "merge_request_event"'</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- validate view -->
+        <div class="sd-view" id="view-validate">
+          <div class="term" id="term-validate"></div>
+        </div>
+
+        <!-- sast view -->
+        <div class="sd-view" id="view-sast">
+          <div class="term" id="term-sast" style="margin-bottom:16px"></div>
+          <div id="findings-table-wrap" style="display:none">
+            <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:10px">KICS findings report</div>
+            <table class="findings-tbl" id="findings-tbl">
+              <thead><tr><th>Severity</th><th>Check ID</th><th>Description</th><th>File</th><th>Line</th></tr></thead>
+              <tbody id="findings-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- plan view -->
+        <div class="sd-view" id="view-plan">
+          <div class="term" id="term-plan"></div>
+        </div>
+
+        <!-- gate view -->
+        <div class="sd-view" id="view-gate">
+          <div class="term" id="term-gate" style="margin-bottom:16px"></div>
+          <div id="gate-result"></div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /pl-simulator -->
+
+  <!-- Step-by-step explainer -->
+  <div class="step-explainer">
+    <div class="pl-sim-label" style="padding:0 0 0 0">How each pipeline stage works</div>
+    <div class="step-grid">
+      <div class="step-card active" id="step-card-0" onclick="showStep(0)">
+        <div class="step-num">Stage 01 · validate</div>
+        <div class="step-title">Terraform format &amp; validate</div>
+        <div class="step-body">Runs <code>terraform fmt -check</code> and <code>terraform validate</code>. No AWS credentials needed — purely static HCL parsing. Fails fast on syntax errors before spending time on security scans.</div>
+      </div>
+      <div class="step-card" id="step-card-1" onclick="showStep(1)">
+        <div class="step-num">Stage 02 · sast</div>
+        <div class="step-title">KICS IaC SAST scan</div>
+        <div class="step-body">Runs <code>kics scan --path . --fail-on CRITICAL,HIGH</code>. KICS reads every <code>.tf</code> file statically — no AWS API calls, no plan needed. Exits non-zero if Critical or High findings are detected.</div>
+      </div>
+      <div class="step-card" id="step-card-2" onclick="showStep(2)">
+        <div class="step-num">Stage 03 · plan</div>
+        <div class="step-title">Terraform plan (speculative)</div>
+        <div class="step-body">Runs <code>terraform plan -out=tfplan</code> against the target account using OIDC federation. Only runs if the SAST stage passed. Plan output is saved as an artifact for human review in the MR.</div>
+      </div>
+      <div class="step-card" id="step-card-3" onclick="showStep(3)">
+        <div class="step-num">Stage 04 · security-gate</div>
+        <div class="step-title">MR merge gate decision</div>
+        <div class="step-body">Parses the KICS JSON report artifact. Critical findings block the MR from merging via GitLab's <code>needs:</code> dependency — the gate job fails, preventing the approval button from activating.</div>
+      </div>
+    </div>
+    <div id="step-detail-container">
+      <div class="step-detail active" id="step-detail-0">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div>
+            <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:12px">Job definition</div>
+            <div class="yaml-editor">
+              <div class="yaml-editor-hdr"><div class="yaml-dots"><span class="yaml-dot r"></span><span class="yaml-dot a"></span><span class="yaml-dot g"></span></div><span class="yaml-fname">validate job</span></div>
+              <div class="yaml-body">
+<div class="yl"><span class="yl-n">1</span><span class="yl-k">tf-validate:</span></div>
+<div class="yl"><span class="yl-n">2</span><span class="yl-plain">  </span><span class="yl-k">stage: </span><span class="yl-v">validate</span></div>
+<div class="yl"><span class="yl-n">3</span><span class="yl-plain">  </span><span class="yl-k">image: </span><span class="yl-s">hashicorp/terraform:1.7</span></div>
+<div class="yl"><span class="yl-n">4</span><span class="yl-plain">  </span><span class="yl-k">script:</span></div>
+<div class="yl"><span class="yl-n">5</span><span class="yl-plain">    - </span><span class="yl-s">terraform init -backend=false</span></div>
+<div class="yl"><span class="yl-n">6</span><span class="yl-plain">    - </span><span class="yl-s">terraform fmt -check -recursive</span></div>
+<div class="yl"><span class="yl-n">7</span><span class="yl-plain">    - </span><span class="yl-s">terraform validate</span></div>
+<div class="yl"><span class="yl-n">8</span><span class="yl-plain">  </span><span class="yl-k">rules:</span></div>
+<div class="yl"><span class="yl-n">9</span><span class="yl-plain">    - </span><span class="yl-k">if: </span><span class="yl-s">'$CI_PIPELINE_SOURCE == "merge_request_event"'</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="ib infob" style="margin:0">
+            <div class="ibt">Why this comes first</div>
+            <ul>
+              <li>KICS can still scan invalid HCL but produces noisy false results. Validating first ensures findings are real.</li>
+              <li><code>-backend=false</code> skips state backend init — no AWS credentials needed at this stage.</li>
+              <li>Format check enforces consistent code style before review. Fails early, saves reviewer time.</li>
+              <li>Exit code 0 = passes and unblocks the sast stage. Non-zero = pipeline stops here.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="step-detail" id="step-detail-1">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div>
+            <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:12px">KICS job definition</div>
+            <div class="yaml-editor">
+              <div class="yaml-editor-hdr"><div class="yaml-dots"><span class="yaml-dot r"></span><span class="yaml-dot a"></span><span class="yaml-dot g"></span></div><span class="yaml-fname">kics-iac-sast job</span></div>
+              <div class="yaml-body">
+<div class="yl"><span class="yl-n">1</span><span class="yl-k">kics-iac-sast:</span></div>
+<div class="yl"><span class="yl-n">2</span><span class="yl-plain">  </span><span class="yl-k">stage: </span><span class="yl-v">sast</span></div>
+<div class="yl"><span class="yl-n">3</span><span class="yl-plain">  </span><span class="yl-k">needs: </span><span class="yl-s">[tf-validate]</span></div>
+<div class="yl"><span class="yl-n">4</span><span class="yl-plain">  </span><span class="yl-k">image: </span><span class="yl-s">checkmarx/kics:latest</span></div>
+<div class="yl yl-hl"><span class="yl-n">5</span><span class="yl-plain">  </span><span class="yl-k">script:</span></div>
+<div class="yl yl-hl"><span class="yl-n">6</span><span class="yl-plain">    - </span><span class="yl-s">kics scan \</span></div>
+<div class="yl yl-hl"><span class="yl-n">7</span><span class="yl-plain">        </span><span class="yl-s">--path . \</span></div>
+<div class="yl yl-hl"><span class="yl-n">8</span><span class="yl-plain">        </span><span class="yl-s">--report-formats json,html \</span></div>
+<div class="yl yl-hl"><span class="yl-n">9</span><span class="yl-plain">        </span><span class="yl-s">--output-path reports/ \</span></div>
+<div class="yl yl-hl"><span class="yl-n">10</span><span class="yl-plain">        </span><span class="yl-s">--fail-on CRITICAL,HIGH</span></div>
+<div class="yl"><span class="yl-n">11</span><span class="yl-plain">  </span><span class="yl-k">artifacts:</span></div>
+<div class="yl"><span class="yl-n">12</span><span class="yl-plain">    </span><span class="yl-k">reports:</span></div>
+<div class="yl"><span class="yl-n">13</span><span class="yl-plain">      </span><span class="yl-k">sast: </span><span class="yl-s">reports/kics-results.json</span></div>
+<div class="yl"><span class="yl-n">14</span><span class="yl-plain">    </span><span class="yl-k">when: </span><span class="yl-v">always</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="ib warn" style="margin:0">
+            <div class="ibt">Key flags explained</div>
+            <ul>
+              <li><code>--path .</code> — scans all <code>.tf</code> files in the repo recursively</li>
+              <li><code>--report-formats json,html</code> — JSON consumed by the gate job; HTML uploaded for human review</li>
+              <li><code>--fail-on CRITICAL,HIGH</code> — exits non-zero only for these severities. Medium/Low are informational.</li>
+              <li><code>--output-path reports/</code> — artifacts directory; passed to next stage via GitLab artifacts</li>
+              <li><code>when: always</code> on artifacts — report is uploaded even when the job fails, so reviewers can see what KICS found</li>
+              <li>No AWS credentials needed — purely static file analysis</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="step-detail" id="step-detail-2">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div>
+            <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:12px">Plan job definition</div>
+            <div class="yaml-editor">
+              <div class="yaml-editor-hdr"><div class="yaml-dots"><span class="yaml-dot r"></span><span class="yaml-dot a"></span><span class="yaml-dot g"></span></div><span class="yaml-fname">tf-plan job</span></div>
+              <div class="yaml-body">
+<div class="yl"><span class="yl-n">1</span><span class="yl-k">tf-plan:</span></div>
+<div class="yl"><span class="yl-n">2</span><span class="yl-plain">  </span><span class="yl-k">stage: </span><span class="yl-v">plan</span></div>
+<div class="yl yl-hl"><span class="yl-n">3</span><span class="yl-plain">  </span><span class="yl-k">needs: </span><span class="yl-s">[kics-iac-sast]</span></div>
+<div class="yl"><span class="yl-n">4</span><span class="yl-plain">  </span><span class="yl-k">image: </span><span class="yl-s">hashicorp/terraform:1.7</span></div>
+<div class="yl"><span class="yl-n">5</span><span class="yl-plain">  </span><span class="yl-k">id_tokens:</span></div>
+<div class="yl"><span class="yl-n">6</span><span class="yl-plain">    </span><span class="yl-k">AWS_TOKEN:</span></div>
+<div class="yl"><span class="yl-n">7</span><span class="yl-plain">      </span><span class="yl-k">aud: </span><span class="yl-s">sts.amazonaws.com</span></div>
+<div class="yl"><span class="yl-n">8</span><span class="yl-plain">  </span><span class="yl-k">script:</span></div>
+<div class="yl"><span class="yl-n">9</span><span class="yl-plain">    - </span><span class="yl-s">terraform init</span></div>
+<div class="yl"><span class="yl-n">10</span><span class="yl-plain">    - </span><span class="yl-s">terraform plan -out=tfplan</span></div>
+<div class="yl"><span class="yl-n">11</span><span class="yl-plain">  </span><span class="yl-k">artifacts:</span></div>
+<div class="yl"><span class="yl-n">12</span><span class="yl-plain">    </span><span class="yl-k">paths: </span><span class="yl-s">[tfplan]</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="ib greenb" style="margin:0">
+            <div class="ibt">OIDC federation — no static keys</div>
+            <ul>
+              <li><code>id_tokens</code> block generates a short-lived OIDC JWT — GitLab CI's native way to authenticate to AWS without storing access keys</li>
+              <li>The AWS IAM role trust policy must match the GitLab OIDC issuer and the specific project/branch claims</li>
+              <li><code>needs: [kics-iac-sast]</code> creates a hard dependency — if KICS found Critical/High issues, this stage never runs</li>
+              <li>The plan is a speculative dry-run — no infrastructure is created at this stage</li>
+              <li>Plan artifact is used by the security-gate job and displayed in the MR for reviewer inspection</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="step-detail" id="step-detail-3">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div>
+            <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:12px">Gate job definition</div>
+            <div class="yaml-editor">
+              <div class="yaml-editor-hdr"><div class="yaml-dots"><span class="yaml-dot r"></span><span class="yaml-dot a"></span><span class="yaml-dot g"></span></div><span class="yaml-fname">security-gate job</span></div>
+              <div class="yaml-body">
+<div class="yl"><span class="yl-n">1</span><span class="yl-k">security-gate:</span></div>
+<div class="yl"><span class="yl-n">2</span><span class="yl-plain">  </span><span class="yl-k">stage: </span><span class="yl-v">security-gate</span></div>
+<div class="yl"><span class="yl-n">3</span><span class="yl-plain">  </span><span class="yl-k">needs:</span></div>
+<div class="yl"><span class="yl-n">4</span><span class="yl-plain">    - </span><span class="yl-s">kics-iac-sast</span></div>
+<div class="yl"><span class="yl-n">5</span><span class="yl-plain">    - </span><span class="yl-s">tf-plan</span></div>
+<div class="yl"><span class="yl-n">6</span><span class="yl-plain">  </span><span class="yl-k">image: </span><span class="yl-s">python:3.12-slim</span></div>
+<div class="yl yl-hl"><span class="yl-n">7</span><span class="yl-plain">  </span><span class="yl-k">script:</span></div>
+<div class="yl yl-hl"><span class="yl-n">8</span><span class="yl-plain">    - </span><span class="yl-s">python3 scripts/kics_gate.py \</span></div>
+<div class="yl yl-hl"><span class="yl-n">9</span><span class="yl-plain">        </span><span class="yl-s">--report reports/kics-results.json \</span></div>
+<div class="yl yl-hl"><span class="yl-n">10</span><span class="yl-plain">        </span><span class="yl-s">--fail-on CRITICAL</span></div>
+<div class="yl"><span class="yl-n">11</span><span class="yl-plain">  </span><span class="yl-k">allow_failure: </span><span class="yl-v">false</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="ib warn" style="margin:0">
+            <div class="ibt">How the gate blocks the MR</div>
+            <ul>
+              <li>The gate script parses <code>kics-results.json</code> and counts findings by severity</li>
+              <li>If Critical count &gt; 0: <code>sys.exit(1)</code> — the job fails with a non-zero exit code</li>
+              <li>GitLab marks the MR as "pipeline failed" — the Merge button stays disabled until the pipeline passes</li>
+              <li><code>allow_failure: false</code> (default) ensures failure propagates to the MR status</li>
+              <li>High findings log a warning but do not exit non-zero — they appear as informational comments on the MR via the SAST report artifact</li>
+              <li>The gate job also posts a summary comment to the MR via the GitLab API using <code>$CI_MERGE_REQUEST_IID</code></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /pl-page -->
+</div><!-- /panel-pipeline -->
+
+<!-- ══════════════════════════════════════
+     PANEL: KMS KEY POLICY
+══════════════════════════════════════ -->
+<div class="panel" id="panel-kms">
+  <div class="stats-strip">
+    <div class="stat-pill active" onclick="showF('kms','ckv111');setStat(this,'kms')"><div class="sp-id">CKV_AWS_111</div><div class="sp-name">Wildcard principal</div><span class="sp-badge critical">Critical</span></div>
+    <div class="stat-pill" onclick="showF('kms','ckv356k');setStat(this,'kms')"><div class="sp-id">CKV_AWS_356</div><div class="sp-name">Wildcard actions</div><span class="sp-badge critical">Critical</span></div>
+    <div class="stat-pill" onclick="showF('kms','ckv2aws6');setStat(this,'kms')"><div class="sp-id">CKV2_AWS_6</div><div class="sp-name">No policy defined</div><span class="sp-badge critical">Critical</span></div>
+    <div class="stat-pill bh" onclick="showF('kms','ckv7');setStat(this,'kms')"><div class="sp-id">CKV_AWS_7</div><div class="sp-name">Rotation disabled</div><span class="sp-badge high">High</span></div>
+    <div class="stat-pill bh" onclick="showF('kms','ckv227');setStat(this,'kms')"><div class="sp-id">CKV_AWS_227</div><div class="sp-name">Key disabled</div><span class="sp-badge high">High</span></div>
+  </div>
+  <div class="findings-layout">
+    <aside class="findings-aside">
+      <div class="aside-head">KMS Key Checks</div>
+      <div class="nav-item active" id="kms-n-ckv111" onclick="showF('kms','ckv111');setNav('kms','ckv111')"><span class="nd c"></span><span class="nav-text">CKV_AWS_111</span></div>
+      <div class="nav-item" id="kms-n-ckv356k" onclick="showF('kms','ckv356k');setNav('kms','ckv356k')"><span class="nd c"></span><span class="nav-text">CKV_AWS_356</span></div>
+      <div class="nav-item" id="kms-n-ckv2aws6" onclick="showF('kms','ckv2aws6');setNav('kms','ckv2aws6')"><span class="nd c"></span><span class="nav-text">CKV2_AWS_6</span></div>
+      <div class="nav-div"></div>
+      <div class="nav-item ha" id="kms-n-ckv7" onclick="showF('kms','ckv7');setNav('kms','ckv7')"><span class="nd h"></span><span class="nav-text">CKV_AWS_7</span></div>
+      <div class="nav-item ha" id="kms-n-ckv227" onclick="showF('kms','ckv227');setNav('kms','ckv227')"><span class="nd h"></span><span class="nav-text">CKV_AWS_227</span></div>
+    </aside>
+    <div class="findings-content">
+
+      <!-- CKV_AWS_111 -->
+      <div class="finding active" id="kms-f-ckv111">
+        <div class="fhdr"><div class="fmeta">
+          <div class="fcheck">CKV_AWS_111 · aws_kms_key · aws_kms_key_policy</div>
+          <div class="ftitle">Wildcard principal with no condition</div>
+          <div class="fdesc">Fires when <code>Principal = "*"</code> appears in an Allow statement with no <code>Condition</code> block. Grants any AWS identity globally — including identities in other accounts. Also fires for <code>Principal = { AWS = "*" }</code>.</div>
+        </div><span class="stag critical">Critical</span></div>
+        <div class="tabs"><div class="tab active" onclick="T(this,'k111','diff')">Diff</div><div class="tab" onclick="T(this,'k111','cko')">KICS output</div><div class="tab" onclick="T(this,'k111','wka')">Condition workaround</div></div>
+        <div class="tc active" id="k111-diff">
+          <div class="diff-grid">
+            <div class="cp"><div class="ch bad">✗ Vulnerable</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">Statement = [{</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">  Effect = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl lb">  Principal = </span><span class="cl lb st">"*"</span></div>
+<div class="line"><span class="ln">4</span><span class="cl lb">  Action   = [</span><span class="cl lb st">"kms:*"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">5</span><span class="cl">  Resource = </span><span class="cl st">"*"</span></div>
+<div class="line"><span class="ln">6</span><span class="cl lc">  # no Condition block</span></div>
+<div class="line"><span class="ln">7</span><span class="cl">}]</span></div>
+            </div></div>
+            <div class="cp"><div class="ch good">✓ Fixed — scoped principal</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">Statement = [{</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">  Effect = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl lg">  Principal = { AWS = [</span></div>
+<div class="line"><span class="ln">4</span><span class="cl lg">    </span><span class="cl st">"arn:aws:iam::${local.account_id}:root"</span></div>
+<div class="line"><span class="ln">5</span><span class="cl lg">  ]}</span></div>
+<div class="line"><span class="ln">6</span><span class="cl lg">  Action   = local.kms_use_actions</span></div>
+<div class="line"><span class="ln">7</span><span class="cl">  Resource = </span><span class="cl st">"*"</span></div>
+<div class="line"><span class="ln">8</span><span class="cl">}]</span></div>
+            </div></div>
+          </div>
+          <div class="ig">
+            <div class="ib"><div class="ibt">What triggers it</div><ul>
+              <li>Allow + <code>"*"</code> principal + no Condition — all three together</li>
+              <li>Also <code>{ AWS = "*" }</code> with same pattern</li>
+              <li>Applies to both inline <code>policy</code> on <code>aws_kms_key</code> and the standalone <code>aws_kms_key_policy</code> resource</li>
+            </ul></div>
+            <div class="ib"><div class="ibt">What does NOT trigger it</div><ul>
+              <li>Specific role/user/account ARN as Principal</li>
+              <li>Service principal: <code>{ Service = "logs.amazonaws.com" }</code></li>
+              <li>Wildcard Principal WITH a <code>Condition</code> block present (see workaround tab)</li>
+            </ul></div>
+          </div>
+        </div>
+        <div class="tc" id="k111-cko"><div class="cko"><span class="cp-fail">Check: CKV_AWS_111: "Ensure IAM policies do not have statements with admin permissions"</span>
+<span class="cp-dim">	FAILED for resource: aws_kms_key.bad</span>
+<span class="cp-dim">	File: main.tf:1-7</span>
+
+<span class="cp-dim">	  2 |   Effect    = "Allow"</span>
+<span class="cp-fail">	  3 |   Principal = "*"</span>
+<span class="cp-fail">	  4 |   Action    = ["kms:*"]</span>
+
+<span class="cp-am">Passed checks: 0, Failed checks: 1, Skipped checks: 0</span></div></div>
+        <div class="tc" id="k111-wka">
+          <div class="alert warn"><span>⚠</span><span>If you genuinely need <code>Principal = "*"</code> (e.g. cross-account service access), KICS accepts it only when a <code>Condition</code> block is also present to restrict scope.</span></div>
+          <div class="diff-grid s"><div class="cp"><div class="ch good">✓ Accepted — wildcard principal + condition</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">Statement = [{</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">  Effect    = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl">  Principal = </span><span class="cl st">"*"</span></div>
+<div class="line"><span class="ln">4</span><span class="cl">  Action    = local.kms_use_actions</span></div>
+<div class="line"><span class="ln">5</span><span class="cl">  Resource  = </span><span class="cl st">"*"</span></div>
+<div class="line"><span class="ln">6</span><span class="cl lg">  Condition = {</span></div>
+<div class="line"><span class="ln">7</span><span class="cl lg">    StringEquals = {</span></div>
+<div class="line"><span class="ln">8</span><span class="cl lg">      </span><span class="cl st">"kms:CallerAccount"</span><span class="cl lg"> =</span></div>
+<div class="line"><span class="ln">9</span><span class="cl lg">        data.aws_caller_identity.current.account_id</span></div>
+<div class="line"><span class="ln">10</span><span class="cl lg">    }</span></div>
+<div class="line"><span class="ln">11</span><span class="cl lg">  }</span></div>
+<div class="line"><span class="ln">12</span><span class="cl">}]</span></div>
+          </div></div></div>
+        </div>
+      </div>
+
+      <!-- CKV_AWS_356 key -->
+      <div class="finding" id="kms-f-ckv356k">
+        <div class="fhdr"><div class="fmeta">
+          <div class="fcheck">CKV_AWS_356 · aws_kms_key · aws_kms_key_policy</div>
+          <div class="ftitle">Wildcard actions in key policy</div>
+          <div class="fdesc">Fires even when Principal is scoped, if Action contains wildcards like <code>kms:*</code> or <code>kms:Delete*</code>. Requires splitting the policy into two statements — one admin, one use — each with an explicit action list.</div>
+        </div><span class="stag critical">Critical</span></div>
+        <div class="tabs"><div class="tab active" onclick="T(this,'k356k','diff')">Diff</div><div class="tab" onclick="T(this,'k356k','al')">Action allowlists</div></div>
+        <div class="tc active" id="k356k-diff">
+          <div class="diff-grid">
+            <div class="cp"><div class="ch bad">✗ Vulnerable</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">  Principal = { AWS = module.app.role_arn }</span></div>
+<div class="line"><span class="ln">2</span><span class="cl lb">  Action    = [</span><span class="cl lb st">"kms:*"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">3</span><span class="cl lc">  # includes DeleteKey, PutKeyPolicy…</span></div>
+            </div></div>
+            <div class="cp"><div class="ch good">✓ Fixed — named locals</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">  Principal = { AWS = module.app.role_arn }</span></div>
+<div class="line"><span class="ln">2</span><span class="cl lg">  Action    = local.kms_use_actions</span></div>
+<div class="line"><span class="ln">3</span><span class="cl lc">  # Encrypt, Decrypt, GenerateDataKey…</span></div>
+            </div></div>
+          </div>
+        </div>
+        <div class="tc" id="k356k-al">
+          <div class="cp"><div class="ch neu" style="justify-content:space-between"><span>locals.tf — curated action sets</span><button class="copy-btn" onclick="cpCode('k356al-code',this)">Copy</button></div><div class="cb" id="k356al-code">
+<div class="line"><span class="ln">1</span><span class="cl kw">locals </span><span class="cl">{</span></div>
+<div class="line"><span class="ln">2</span><span class="cl lc">  # App role — data-plane only (use these for CKV_AWS_356)</span></div>
+<div class="line"><span class="ln">3</span><span class="cl ky">  kms_use_actions </span><span class="cl">= [</span></div>
+<div class="line"><span class="ln">4</span><span class="cl">    </span><span class="cl st">"kms:Decrypt"</span><span class="cl">, </span><span class="cl st">"kms:Encrypt"</span><span class="cl">,</span></div>
+<div class="line"><span class="ln">5</span><span class="cl">    </span><span class="cl st">"kms:ReEncrypt*"</span><span class="cl">, </span><span class="cl st">"kms:GenerateDataKey"</span><span class="cl">,</span></div>
+<div class="line"><span class="ln">6</span><span class="cl">    </span><span class="cl st">"kms:GenerateDataKeyWithoutPlaintext"</span><span class="cl">, </span><span class="cl st">"kms:DescribeKey"</span></div>
+<div class="line"><span class="ln">7</span><span class="cl">  ]</span></div>
+<div class="line"><span class="ln">8</span><span class="cl lc">  # Infra/admin role — control-plane</span></div>
+<div class="line"><span class="ln">9</span><span class="cl ky">  kms_admin_actions </span><span class="cl">= [</span></div>
+<div class="line"><span class="ln">10</span><span class="cl">    </span><span class="cl st">"kms:Create*"</span><span class="cl">, </span><span class="cl st">"kms:Describe*"</span><span class="cl">, </span><span class="cl st">"kms:Enable*"</span><span class="cl">,</span></div>
+<div class="line"><span class="ln">11</span><span class="cl">    </span><span class="cl st">"kms:List*"</span><span class="cl">, </span><span class="cl st">"kms:Put*"</span><span class="cl">, </span><span class="cl st">"kms:Update*"</span><span class="cl">,</span></div>
+<div class="line"><span class="ln">12</span><span class="cl">    </span><span class="cl st">"kms:Disable*"</span><span class="cl">, </span><span class="cl st">"kms:Delete*"</span><span class="cl">,</span></div>
+<div class="line"><span class="ln">13</span><span class="cl">    </span><span class="cl st">"kms:ScheduleKeyDeletion"</span><span class="cl">, </span><span class="cl st">"kms:CancelKeyDeletion"</span></div>
+<div class="line"><span class="ln">14</span><span class="cl">  ]</span></div>
+<div class="line"><span class="ln">15</span><span class="cl">}</span></div>
+          </div></div>
+        </div>
+      </div>
+
+      <!-- CKV2_AWS_6 -->
+      <div class="finding" id="kms-f-ckv2aws6">
+        <div class="fhdr"><div class="fmeta">
+          <div class="fcheck">CKV2_AWS_6 · aws_kms_key</div>
+          <div class="ftitle">No key policy defined — default policy applied</div>
+          <div class="fdesc">When the <code>policy</code> block is omitted from <code>aws_kms_key</code>, AWS silently applies a default policy granting the account root full <code>kms:*</code>. KICS skips CKV_AWS_111 (nothing to scan) but CKV2_AWS_6 catches the omission directly.</div>
+        </div><span class="stag critical">Critical</span></div>
+        <div class="alert warn"><span>⚠</span><span>Counterintuitive: omitting the policy block bypasses CKV_AWS_111 but immediately triggers CKV2_AWS_6. The AWS default policy at runtime is equivalent to <code>Principal="*", Action="kms:*"</code> — equally dangerous, just invisible to the static scanner.</span></div>
+        <div class="diff-grid">
+          <div class="cp"><div class="ch bad">✗ No policy — CKV2_AWS_6 fires</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl kw">resource </span><span class="cl st">"aws_kms_key"</span><span class="cl"> </span><span class="cl st">"bad"</span><span class="cl"> {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">  description         = </span><span class="cl st">"app key"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl">  enable_key_rotation = </span><span class="cl kw">true</span></div>
+<div class="line"><span class="ln">4</span><span class="cl lb lc">  # policy block omitted entirely</span></div>
+<div class="line"><span class="ln">5</span><span class="cl lc">  # CKV_AWS_111 → skipped (nothing to scan)</span></div>
+<div class="line"><span class="ln">6</span><span class="cl lc">  # CKV2_AWS_6  → FAILS</span></div>
+<div class="line"><span class="ln">7</span><span class="cl">}</span></div>
+          </div></div>
+          <div class="cp"><div class="ch good">✓ Explicit policy required</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl kw">resource </span><span class="cl st">"aws_kms_key"</span><span class="cl"> </span><span class="cl st">"good"</span><span class="cl"> {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">  description         = </span><span class="cl st">"app key"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl">  enable_key_rotation = </span><span class="cl kw">true</span></div>
+<div class="line"><span class="ln">4</span><span class="cl lg">  policy = data.aws_iam_policy_document</span></div>
+<div class="line"><span class="ln">5</span><span class="cl lg">           .kms_policy.json</span></div>
+<div class="line"><span class="ln">6</span><span class="cl lc">  # CKV2_AWS_6 → PASSES</span></div>
+<div class="line"><span class="ln">7</span><span class="cl">}</span></div>
+          </div></div>
+        </div>
+        <div class="ig">
+          <div class="ib warn"><div class="ibt">Finding matrix — no policy block</div><ul>
+            <li>CKV_AWS_111 → <span style="color:var(--green)">skipped</span> (no block for the scanner to evaluate)</li>
+            <li>CKV2_AWS_6 → <span style="color:var(--red)">FAILS</span></li>
+            <li>CKV_AWS_7 and CKV_AWS_227 → still evaluated (separate attributes, unaffected)</li>
+          </ul></div>
+          <div class="ib infob"><div class="ibt">AWS default key policy (runtime, invisible to KICS)</div><ul>
+            <li>Principal: account root ARN (<code>arn:aws:iam::ACCOUNT:root</code>)</li>
+            <li>Action: <code>kms:*</code> · Resource: <code>*</code></li>
+            <li>Functionally identical to the pattern that triggers CKV_AWS_111 and CKV_AWS_356 when written explicitly</li>
+          </ul></div>
+        </div>
+      </div>
+
+      <!-- CKV_AWS_7 -->
+      <div class="finding" id="kms-f-ckv7">
+        <div class="fhdr"><div class="fmeta">
+          <div class="fcheck">CKV_AWS_7 · aws_kms_key</div>
+          <div class="ftitle">Key rotation not enabled</div>
+          <div class="fdesc"><code>enable_key_rotation</code> defaults to <code>false</code>. Omitting it fails this check. Required by PCI-DSS 3.6.4, CIS AWS Benchmark 3.8, and SOC 2 CC9.1.</div>
+        </div><span class="stag high">High</span></div>
+        <div class="diff-grid">
+          <div class="cp"><div class="ch bad">✗ Vulnerable — default is false</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl kw">resource </span><span class="cl st">"aws_kms_key"</span><span class="cl"> </span><span class="cl st">"bad"</span><span class="cl"> {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">  description = </span><span class="cl st">"app key"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl lb lc">  # enable_key_rotation not set → false</span></div>
+<div class="line"><span class="ln">4</span><span class="cl">}</span></div>
+          </div></div>
+          <div class="cp"><div class="ch good">✓ Fixed — one line</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl kw">resource </span><span class="cl st">"aws_kms_key"</span><span class="cl"> </span><span class="cl st">"good"</span><span class="cl"> {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">  description = </span><span class="cl st">"app key"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl lg">  enable_key_rotation = </span><span class="cl kw">true</span></div>
+<div class="line"><span class="ln">4</span><span class="cl">}</span></div>
+          </div></div>
+        </div>
+        <div class="ig">
+          <div class="ib"><div class="ibt">Rotation behaviour</div><ul>
+            <li>AWS rotates the backing key material automatically every 365 days</li>
+            <li>Key ARN and aliases are unchanged — no re-encryption needed for existing data</li>
+            <li>Old material is retained indefinitely for decryption of existing ciphertext</li>
+          </ul></div>
+          <div class="ib"><div class="ibt">Not supported for</div><ul>
+            <li>Asymmetric KMS keys (RSA, ECC) — manage manually</li>
+            <li>HMAC keys</li>
+            <li>CloudHSM custom key stores — manage rotation via HSM tooling</li>
+          </ul></div>
+        </div>
+      </div>
+
+      <!-- CKV_AWS_227 -->
+      <div class="finding" id="kms-f-ckv227">
+        <div class="fhdr"><div class="fmeta">
+          <div class="fcheck">CKV_AWS_227 · aws_kms_key</div>
+          <div class="ftitle">KMS key explicitly disabled</div>
+          <div class="fdesc"><code>is_enabled</code> defaults to <code>true</code> so this only fires when you set it to <code>false</code>. A disabled key blocks all encrypt/decrypt operations for every service referencing it.</div>
+        </div><span class="stag high">High</span></div>
+        <div class="diff-grid">
+          <div class="cp"><div class="ch bad">✗ Flagged</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl kw">resource </span><span class="cl st">"aws_kms_key"</span><span class="cl"> </span><span class="cl st">"disabled"</span><span class="cl"> {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">  description = </span><span class="cl st">"app key"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl lb">  is_enabled  = </span><span class="cl lb kw">false</span></div>
+<div class="line"><span class="ln">4</span><span class="cl">}</span></div>
+          </div></div>
+          <div class="cp"><div class="ch good">✓ Fixed or omit entirely</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl kw">resource </span><span class="cl st">"aws_kms_key"</span><span class="cl"> </span><span class="cl st">"enabled"</span><span class="cl"> {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">  description = </span><span class="cl st">"app key"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl lg">  is_enabled  = </span><span class="cl kw">true</span><span class="cl lc"> # or omit — default is true</span></div>
+<div class="line"><span class="ln">4</span><span class="cl">}</span></div>
+          </div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PANEL: IAM / KMS ACTIONS
+══════════════════════════════════════ -->
+<div class="panel" id="panel-iam">
+  <div class="stats-strip">
+    <div class="stat-pill active" onclick="showF('iam','ckv49');setStat(this,'iam')"><div class="sp-id">CKV_AWS_49</div><div class="sp-name">Wildcard actions</div><span class="sp-badge critical">Critical</span></div>
+    <div class="stat-pill" onclick="showF('iam','ckv356i');setStat(this,'iam')"><div class="sp-id">CKV_AWS_356</div><div class="sp-name">Wildcard resource</div><span class="sp-badge critical">Critical</span></div>
+    <div class="stat-pill bh" onclick="showF('iam','ckv111i');setStat(this,'iam')"><div class="sp-id">CKV_AWS_111</div><div class="sp-name">Write without constraints</div><span class="sp-badge high">High</span></div>
+  </div>
+  <div class="findings-layout">
+    <aside class="findings-aside">
+      <div class="aside-head">IAM Policy Checks</div>
+      <div class="nav-item active" id="iam-n-ckv49" onclick="showF('iam','ckv49');setNav('iam','ckv49')"><span class="nd c"></span><span class="nav-text">CKV_AWS_49</span></div>
+      <div class="nav-item" id="iam-n-ckv356i" onclick="showF('iam','ckv356i');setNav('iam','ckv356i')"><span class="nd c"></span><span class="nav-text">CKV_AWS_356</span></div>
+      <div class="nav-div"></div>
+      <div class="nav-item ha" id="iam-n-ckv111i" onclick="showF('iam','ckv111i');setNav('iam','ckv111i')"><span class="nd h"></span><span class="nav-text">CKV_AWS_111</span></div>
+    </aside>
+    <div class="findings-content">
+
+      <!-- CKV_AWS_49 -->
+      <div class="finding active" id="iam-f-ckv49">
+        <div class="fhdr"><div class="fmeta">
+          <div class="fcheck">CKV_AWS_49 · aws_iam_policy · aws_iam_policy_document · aws_iam_role_policy</div>
+          <div class="ftitle">IAM policy allows wildcard KMS actions (<code style="font-size:16px;background:none;padding:0">kms:*</code>)</div>
+          <div class="fdesc">Fires on any identity-based policy that uses <code>Action = "kms:*"</code> or the broader <code>Action = "*"</code>. This is the IAM-side check — distinct from the key resource policy check covered in the KMS section.</div>
+        </div><span class="stag critical">Critical</span></div>
+        <div class="tabs"><div class="tab active" onclick="T(this,'i49','diff')">Diff</div><div class="tab" onclick="T(this,'i49','cko')">KICS output</div></div>
+        <div class="tc active" id="i49-diff">
+          <div class="diff-grid">
+            <div class="cp"><div class="ch bad">✗ Vulnerable</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl kw">data </span><span class="cl st">"aws_iam_policy_document"</span><span class="cl"> </span><span class="cl st">"bad"</span><span class="cl"> {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">3</span><span class="cl">    effect    = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">4</span><span class="cl lb">    actions   = [</span><span class="cl lb st">"kms:*"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">5</span><span class="cl">    resources = [</span><span class="cl st">"*"</span><span class="cl">]</span></div>
+<div class="line"><span class="ln">6</span><span class="cl">  }</span></div>
+<div class="line"><span class="ln">7</span><span class="cl">}</span></div>
+            </div></div>
+            <div class="cp"><div class="ch good">✓ Fixed — explicit actions + scoped resource</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl kw">data </span><span class="cl st">"aws_iam_policy_document"</span><span class="cl"> </span><span class="cl st">"good"</span><span class="cl"> {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">3</span><span class="cl">    effect  = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">4</span><span class="cl lg">    actions = [</span></div>
+<div class="line"><span class="ln">5</span><span class="cl">      </span><span class="cl st">"kms:Decrypt"</span><span class="cl">,</span></div>
+<div class="line"><span class="ln">6</span><span class="cl">      </span><span class="cl st">"kms:GenerateDataKey"</span><span class="cl">,</span></div>
+<div class="line"><span class="ln">7</span><span class="cl">      </span><span class="cl st">"kms:DescribeKey"</span></div>
+<div class="line"><span class="ln">8</span><span class="cl lg">    ]</span></div>
+<div class="line"><span class="ln">9</span><span class="cl lg">    resources = [aws_kms_key.this.arn]</span></div>
+<div class="line"><span class="ln">10</span><span class="cl">  }</span></div>
+<div class="line"><span class="ln">11</span><span class="cl">}</span></div>
+            </div></div>
+          </div>
+        </div>
+        <div class="tc" id="i49-cko"><div class="cko"><span class="cp-fail">Check: CKV_AWS_49: "Ensure no IAM policies documents allow '*' as a statement's actions"</span>
+<span class="cp-dim">	FAILED for resource: data.aws_iam_policy_document.bad</span>
+<span class="cp-dim">	File: iam.tf:1-7</span>
+<span class="cp-fail">	  4 |   actions = ["kms:*"]</span>
+<span class="cp-am">Passed checks: 0, Failed checks: 1, Skipped checks: 0</span></div></div>
+      </div>
+
+      <!-- CKV_AWS_356 IAM -->
+      <div class="finding" id="iam-f-ckv356i">
+        <div class="fhdr"><div class="fmeta">
+          <div class="fcheck">CKV_AWS_356 · aws_iam_policy · aws_iam_policy_document</div>
+          <div class="ftitle">IAM policy uses <code style="font-size:15px;background:none;padding:0">Resource = "*"</code> for KMS actions</div>
+          <div class="fdesc">Flags policies where KMS actions are granted on <code>"*"</code> rather than a specific key ARN. Important caveat: several KMS actions require <code>"*"</code> by AWS design — KICS has a documented false-positive for these.</div>
+        </div><span class="stag critical">Critical</span></div>
+        <div class="alert info"><span>ℹ</span><span>Known false positive (Checkov issues #5148, #5305): <code>kms:GenerateDataKey</code> or <code>kms:Decrypt</code> with <code>Resource = "*"</code> and a <code>Condition</code> block still fire CKV_AWS_356 in some scanner versions. Actions like <code>kms:ListKeys</code> require <code>"*"</code> per AWS — use a skip annotation.</span></div>
+        <div class="tabs"><div class="tab active" onclick="T(this,'i356','diff')">Diff</div><div class="tab" onclick="T(this,'i356','skip')">Skip annotation</div></div>
+        <div class="tc active" id="i356-diff">
+          <div class="diff-grid">
+            <div class="cp"><div class="ch bad">✗ Flagged</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">    actions   = [</span><span class="cl st">"kms:Decrypt"</span><span class="cl">]</span></div>
+<div class="line"><span class="ln">3</span><span class="cl lb">    resources = [</span><span class="cl lb st">"*"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">4</span><span class="cl">  }</span></div>
+            </div></div>
+            <div class="cp"><div class="ch good">✓ Scoped to key ARN</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">    actions   = [</span><span class="cl st">"kms:Decrypt"</span><span class="cl">]</span></div>
+<div class="line"><span class="ln">3</span><span class="cl lg">    resources = [aws_kms_key.this.arn]</span></div>
+<div class="line"><span class="ln">4</span><span class="cl">  }</span></div>
+            </div></div>
+          </div>
+          <div class="ig">
+            <div class="ib"><div class="ibt">Actions requiring Resource = "*" (use skip)</div><ul>
+              <li><code>kms:ListKeys</code>, <code>kms:ListAliases</code></li>
+              <li><code>kms:CreateKey</code>, <code>kms:GenerateRandom</code></li>
+            </ul></div>
+            <div class="ib"><div class="ibt">Actions safely scoped to key ARN</div><ul>
+              <li><code>kms:Decrypt</code>, <code>kms:Encrypt</code>, <code>kms:DescribeKey</code></li>
+              <li><code>kms:GenerateDataKey</code>, <code>kms:ReEncrypt*</code>, <code>kms:PutKeyPolicy</code></li>
+            </ul></div>
+          </div>
+        </div>
+        <div class="tc" id="i356-skip">
+          <div class="cp"><div class="ch neu">Skip annotation for actions that require "*"</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl kw">data </span><span class="cl st">"aws_iam_policy_document"</span><span class="cl"> </span><span class="cl st">"kms_list"</span><span class="cl"> {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl lc">  #checkov:skip=CKV_AWS_356:kms:ListKeys requires Resource="*" per AWS documentation</span></div>
+<div class="line"><span class="ln">3</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">4</span><span class="cl">    effect    = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">5</span><span class="cl">    actions   = [</span><span class="cl st">"kms:ListKeys"</span><span class="cl">, </span><span class="cl st">"kms:ListAliases"</span><span class="cl">]</span></div>
+<div class="line"><span class="ln">6</span><span class="cl">    resources = [</span><span class="cl st">"*"</span><span class="cl">]</span></div>
+<div class="line"><span class="ln">7</span><span class="cl">  }</span></div>
+<div class="line"><span class="ln">8</span><span class="cl">}</span></div>
+          </div></div>
+          <div class="ib" style="margin-top:12px"><div class="ibt">Skip annotation rules</div><ul>
+            <li>Justification is mandatory — the scanner records it in the HTML/JSON report</li>
+            <li>Skips should be reviewed periodically; add a ticket reference if your org policy requires it</li>
+            <li>Never skip <code>CKV_AWS_49</code> or <code>CKV_AWS_1</code> — those indicate genuinely unsafe policies</li>
+          </ul></div>
+        </div>
+      </div>
+
+      <!-- CKV_AWS_111 IAM -->
+      <div class="finding" id="iam-f-ckv111i">
+        <div class="fhdr"><div class="fmeta">
+          <div class="fcheck">CKV_AWS_111 · aws_iam_policy_document</div>
+          <div class="ftitle">IAM policy allows write access without constraints</div>
+          <div class="fdesc">When admin/write KMS actions (<code>kms:PutKeyPolicy</code>, <code>kms:DeleteKey</code>) are granted on <code>Resource = "*"</code> without a <code>Condition</code>, KICS flags unconstrained write access. Known false positive on <code>kms:Decrypt</code> — see alert.</div>
+        </div><span class="stag high">High</span></div>
+        <div class="alert warn"><span>⚠</span><span>Known false positive (Checkov #5305): CKV_AWS_111 may fire on <code>kms:Decrypt</code> with a <code>Condition</code> block present. If the condition is valid, use a skip annotation with justification.</span></div>
+        <div class="diff-grid">
+          <div class="cp"><div class="ch bad">✗ Vulnerable</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">    effect  = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl lb">    actions = [</span><span class="cl lb st">"kms:PutKeyPolicy"</span><span class="cl lb">, </span><span class="cl lb st">"kms:DeleteKey"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">4</span><span class="cl lb">    resources = [</span><span class="cl lb st">"*"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">5</span><span class="cl lc">    # no Condition → FAILS CKV_AWS_111</span></div>
+<div class="line"><span class="ln">6</span><span class="cl">  }</span></div>
+            </div></div>
+          <div class="cp"><div class="ch good">✓ Fixed — scope + condition</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">    effect  = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl">    actions = [</span><span class="cl st">"kms:PutKeyPolicy"</span><span class="cl">, </span><span class="cl st">"kms:DeleteKey"</span><span class="cl">]</span></div>
+<div class="line"><span class="ln">4</span><span class="cl lg">    resources = [aws_kms_key.this.arn]</span></div>
+<div class="line"><span class="ln">5</span><span class="cl lg">    condition {</span></div>
+<div class="line"><span class="ln">6</span><span class="cl lg">      test     = </span><span class="cl st">"StringEquals"</span></div>
+<div class="line"><span class="ln">7</span><span class="cl lg">      variable = </span><span class="cl st">"aws:RequestedRegion"</span></div>
+<div class="line"><span class="ln">8</span><span class="cl lg">      values   = [</span><span class="cl st">"eu-west-2"</span><span class="cl lg">]</span></div>
+<div class="line"><span class="ln">9</span><span class="cl lg">    }</span></div>
+<div class="line"><span class="ln">10</span><span class="cl">  }</span></div>
+          </div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PANEL: IAM CRITICALS
+══════════════════════════════════════ -->
+<div class="panel" id="panel-iamcrit">
+  <div class="stats-strip">
+    <div class="stat-pill active" onclick="showF('iamcrit','ckv1');setStat(this,'iamcrit')"><div class="sp-id">CKV_AWS_1</div><div class="sp-name">Admin *:*</div><span class="sp-badge critical">Critical</span></div>
+    <div class="stat-pill" onclick="showF('iamcrit','ckv107');setStat(this,'iamcrit')"><div class="sp-id">CKV_AWS_107</div><div class="sp-name">Credentials exposure</div><span class="sp-badge critical">Critical</span></div>
+    <div class="stat-pill" onclick="showF('iamcrit','ckv108');setStat(this,'iamcrit')"><div class="sp-id">CKV_AWS_108</div><div class="sp-name">Data exfiltration</div><span class="sp-badge critical">Critical</span></div>
+    <div class="stat-pill" onclick="showF('iamcrit','ckv109');setStat(this,'iamcrit')"><div class="sp-id">CKV_AWS_109</div><div class="sp-name">Permissions management</div><span class="sp-badge critical">Critical</span></div>
+    <div class="stat-pill" onclick="showF('iamcrit','ckv110');setStat(this,'iamcrit')"><div class="sp-id">CKV_AWS_110</div><div class="sp-name">Privilege escalation</div><span class="sp-badge critical">Critical</span></div>
+    <div class="stat-pill" onclick="showF('iamcrit','ckv2aws40');setStat(this,'iamcrit')"><div class="sp-id">CKV2_AWS_40</div><div class="sp-name">Full IAM via iam:*</div><span class="sp-badge critical">Critical</span></div>
+  </div>
+  <div class="findings-layout">
+    <aside class="findings-aside">
+      <div class="aside-head">IAM Critical Checks</div>
+      <div class="nav-item active" id="iamcrit-n-ckv1" onclick="showF('iamcrit','ckv1');setNav('iamcrit','ckv1')"><span class="nd c"></span><span class="nav-text">CKV_AWS_1</span></div>
+      <div class="nav-item" id="iamcrit-n-ckv107" onclick="showF('iamcrit','ckv107');setNav('iamcrit','ckv107')"><span class="nd c"></span><span class="nav-text">CKV_AWS_107</span></div>
+      <div class="nav-item" id="iamcrit-n-ckv108" onclick="showF('iamcrit','ckv108');setNav('iamcrit','ckv108')"><span class="nd c"></span><span class="nav-text">CKV_AWS_108</span></div>
+      <div class="nav-item" id="iamcrit-n-ckv109" onclick="showF('iamcrit','ckv109');setNav('iamcrit','ckv109')"><span class="nd c"></span><span class="nav-text">CKV_AWS_109</span></div>
+      <div class="nav-item" id="iamcrit-n-ckv110" onclick="showF('iamcrit','ckv110');setNav('iamcrit','ckv110')"><span class="nd c"></span><span class="nav-text">CKV_AWS_110</span></div>
+      <div class="nav-div"></div>
+      <div class="nav-item" id="iamcrit-n-ckv2aws40" onclick="showF('iamcrit','ckv2aws40');setNav('iamcrit','ckv2aws40')"><span class="nd c"></span><span class="nav-text">CKV2_AWS_40</span></div>
+    </aside>
+    <div class="findings-content">
+
+      <!-- CKV_AWS_1 -->
+      <div class="finding active" id="iamcrit-f-ckv1">
+        <div class="fhdr"><div class="fmeta">
+          <div class="fcheck">CKV_AWS_1 · aws_iam_policy · aws_iam_policy_document · aws_iam_role_policy</div>
+          <div class="ftitle">Full administrative privileges — Action:* Resource:*</div>
+          <div class="fdesc">The most severe IAM finding. Fires when any Allow statement grants <code>Action = "*"</code> and <code>Resource = "*"</code> simultaneously. This is equivalent to attaching <code>AdministratorAccess</code> inline — the bearer can do anything in the AWS account.</div>
+        </div><span class="stag critical">Critical</span></div>
+        <div class="tabs"><div class="tab active" onclick="T(this,'ic1','diff')">Diff</div><div class="tab" onclick="T(this,'ic1','cko')">KICS output</div><div class="tab" onclick="T(this,'ic1','when')">Trigger conditions</div></div>
+        <div class="tc active" id="ic1-diff">
+          <div class="diff-grid">
+            <div class="cp"><div class="ch bad">✗ Vulnerable</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl kw">data </span><span class="cl st">"aws_iam_policy_document"</span><span class="cl"> </span><span class="cl st">"bad"</span><span class="cl"> {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">3</span><span class="cl">    effect    = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">4</span><span class="cl lb">    actions   = [</span><span class="cl lb st">"*"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">5</span><span class="cl lb">    resources = [</span><span class="cl lb st">"*"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">6</span><span class="cl">  }</span></div>
+<div class="line"><span class="ln">7</span><span class="cl">}</span></div>
+            </div></div>
+            <div class="cp"><div class="ch good">✓ Fixed — scoped service actions</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl kw">data </span><span class="cl st">"aws_iam_policy_document"</span><span class="cl"> </span><span class="cl st">"good"</span><span class="cl"> {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">3</span><span class="cl">    effect  = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">4</span><span class="cl lg">    actions = [</span><span class="cl st">"s3:GetObject"</span><span class="cl">, </span><span class="cl st">"s3:PutObject"</span><span class="cl">,</span></div>
+<div class="line"><span class="ln">5</span><span class="cl">              </span><span class="cl st">"ec2:DescribeInstances"</span><span class="cl lg">]</span></div>
+<div class="line"><span class="ln">6</span><span class="cl lg">    resources = [aws_s3_bucket.this.arn]</span></div>
+<div class="line"><span class="ln">7</span><span class="cl">  }</span></div>
+<div class="line"><span class="ln">8</span><span class="cl">}</span></div>
+            </div></div>
+          </div>
+          <div class="ig">
+            <div class="ib"><div class="ibt">Compliance mapping</div><ul>
+              <li>CIS AWS Benchmark 1.16 — Ensure no admin-privilege IAM policies exist</li>
+              <li>SOC 2 CC6.3 — Logical access limited to minimum necessary</li>
+              <li>PCI-DSS 7.1.2 — Restrict access to individuals whose job requires it</li>
+            </ul></div>
+            <div class="ib"><div class="ibt">Also fires for these resource types</div><ul>
+              <li>Inline JSON in <code>aws_iam_policy.policy</code></li>
+              <li>Heredoc (<code>&lt;&lt;EOF</code>) policies with wildcard statements</li>
+              <li><code>aws_iam_role_policy</code> inline role policies</li>
+              <li>Related check: <code>CKV2_AWS_40</code> covers the <code>iam:*</code> variant</li>
+            </ul></div>
+          </div>
+        </div>
+        <div class="tc" id="ic1-cko"><div class="cko"><span class="cp-fail">Check: CKV_AWS_1: "Ensure IAM policies that allow full '*' administrative privileges are not created"</span>
+<span class="cp-dim">	FAILED for resource: data.aws_iam_policy_document.bad</span>
+<span class="cp-fail">	  4 |   actions   = ["*"]</span>
+<span class="cp-fail">	  5 |   resources = ["*"]</span>
+<span class="cp-am">Passed checks: 0, Failed checks: 1, Skipped checks: 0</span></div></div>
+        <div class="tc" id="ic1-when">
+          <div class="ig s"><div class="ib warn"><div class="ibt">Exact trigger conditions</div><ul>
+            <li>Effect = <code>"Allow"</code> AND Action = <code>"*"</code> AND Resource = <code>"*"</code> — all three together</li>
+            <li>Does NOT fire if Effect = <code>"Deny"</code> — a deny-all is a valid lockdown pattern</li>
+            <li>Does NOT fire for service-scoped wildcards like <code>"s3:*"</code> — only the bare <code>"*"</code> triggers CKV_AWS_1; CKV_AWS_49 covers service wildcards</li>
+            <li>Does NOT fire if Resource is a specific ARN even with <code>Action = "*"</code> — though CKV_AWS_49 still catches the action wildcard separately</li>
+          </ul></div></div>
+        </div>
+      </div>
+
+      <!-- CKV_AWS_107 -->
+      <div class="finding" id="iamcrit-f-ckv107">
+        <div class="fhdr"><div class="fmeta">
+          <div class="fcheck">CKV_AWS_107 · aws_iam_policy · aws_iam_policy_document</div>
+          <div class="ftitle">IAM policy allows credentials exposure</div>
+          <div class="fdesc">Fires when a policy grants actions that return long-lived credentials or token material without a constraining <code>Condition</code>. Canonical triggers: <code>iam:CreateAccessKey</code>, <code>iam:UpdateAccessKey</code>, <code>sts:GetFederationToken</code> on <code>Resource = "*"</code>.</div>
+        </div><span class="stag critical">Critical</span></div>
+        <div class="tabs"><div class="tab active" onclick="T(this,'ic107','diff')">Diff</div><div class="tab" onclick="T(this,'ic107','cko')">KICS output</div><div class="tab" onclick="T(this,'ic107','actions')">Trigger actions</div></div>
+        <div class="tc active" id="ic107-diff">
+          <div class="diff-grid">
+            <div class="cp"><div class="ch bad">✗ Vulnerable</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">    effect  = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl lb">    actions = [</span><span class="cl st">"iam:CreateAccessKey"</span><span class="cl lb">,</span></div>
+<div class="line"><span class="ln">4</span><span class="cl lb">               </span><span class="cl st">"iam:UpdateAccessKey"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">5</span><span class="cl lb">    resources = [</span><span class="cl lb st">"*"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">6</span><span class="cl lc">    # no Condition</span></div>
+<div class="line"><span class="ln">7</span><span class="cl">  }</span></div>
+            </div></div>
+            <div class="cp"><div class="ch good">✓ Fixed — condition + scoped resource</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">    effect  = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl">    actions = [</span><span class="cl st">"iam:CreateAccessKey"</span><span class="cl">]</span></div>
+<div class="line"><span class="ln">4</span><span class="cl lg">    resources = [</span><span class="cl st">"arn:aws:iam::${local.account_id}:user/svc-*"</span><span class="cl lg">]</span></div>
+<div class="line"><span class="ln">5</span><span class="cl lg">    condition {</span></div>
+<div class="line"><span class="ln">6</span><span class="cl lg">      test     = </span><span class="cl st">"StringEquals"</span></div>
+<div class="line"><span class="ln">7</span><span class="cl lg">      variable = </span><span class="cl st">"iam:ResourceTag/managed-by"</span></div>
+<div class="line"><span class="ln">8</span><span class="cl lg">      values   = [</span><span class="cl st">"terraform"</span><span class="cl lg">]</span></div>
+<div class="line"><span class="ln">9</span><span class="cl lg">    }</span></div>
+<div class="line"><span class="ln">10</span><span class="cl">  }</span></div>
+            </div></div>
+          </div>
+        </div>
+        <div class="tc" id="ic107-cko"><div class="cko"><span class="cp-fail">Check: CKV_AWS_107: "Ensure IAM policies does not allow credentials exposure"</span>
+<span class="cp-dim">	FAILED for resource: data.aws_iam_policy_document.bad</span>
+<span class="cp-fail">	  3 |   actions = ["iam:CreateAccessKey", "iam:UpdateAccessKey"]</span>
+<span class="cp-fail">	  5 |   resources = ["*"]</span>
+<span class="cp-am">Passed checks: 0, Failed checks: 1, Skipped checks: 0</span></div></div>
+        <div class="tc" id="ic107-actions">
+          <div class="ig s"><div class="ib infob"><div class="ibt">Actions triggering CKV_AWS_107 when Resource = "*" without Condition</div><ul>
+            <li><code>iam:CreateAccessKey</code> — creates long-lived keys for any user</li>
+            <li><code>iam:UpdateAccessKey</code> — activates/deactivates access keys on any user</li>
+            <li><code>iam:CreateLoginProfile</code> / <code>iam:UpdateLoginProfile</code> — sets/changes console password</li>
+            <li><code>sts:GetFederationToken</code> — issues federated session tokens</li>
+            <li><code>sts:AssumeRoleWithWebIdentity</code> / <code>sts:AssumeRoleWithSAML</code></li>
+            <li>Prefer IAM roles + instance profiles or OIDC federation over long-lived access keys wherever possible</li>
+          </ul></div></div>
+        </div>
+      </div>
+
+      <!-- CKV_AWS_108 -->
+      <div class="finding" id="iamcrit-f-ckv108">
+        <div class="fhdr"><div class="fmeta">
+          <div class="fcheck">CKV_AWS_108 · aws_iam_policy · aws_iam_policy_document</div>
+          <div class="ftitle">IAM policy allows data exfiltration</div>
+          <div class="fdesc">Fires when data-read actions on sensitive services (<code>s3:GetObject</code>, <code>secretsmanager:GetSecretValue</code>, <code>ssm:GetParameter*</code>) are granted on <code>Resource = "*"</code> without a <code>Condition</code>. A role with this policy could read every secret, S3 object, and SSM parameter in the account.</div>
+        </div><span class="stag critical">Critical</span></div>
+        <div class="tabs"><div class="tab active" onclick="T(this,'ic108','diff')">Diff</div><div class="tab" onclick="T(this,'ic108','actions')">Trigger actions</div></div>
+        <div class="tc active" id="ic108-diff">
+          <div class="diff-grid">
+            <div class="cp"><div class="ch bad">✗ Vulnerable</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">    effect  = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl lb">    actions = [</span><span class="cl st">"secretsmanager:GetSecretValue"</span><span class="cl">,</span></div>
+<div class="line"><span class="ln">4</span><span class="cl">               </span><span class="cl st">"ssm:GetParameter"</span><span class="cl">, </span><span class="cl st">"s3:GetObject"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">5</span><span class="cl lb">    resources = [</span><span class="cl lb st">"*"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">6</span><span class="cl">  }</span></div>
+            </div></div>
+            <div class="cp"><div class="ch good">✓ Fixed — scoped to app prefix</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">    effect  = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl">    actions = [</span><span class="cl st">"secretsmanager:GetSecretValue"</span><span class="cl">]</span></div>
+<div class="line"><span class="ln">4</span><span class="cl lg">    resources = [</span></div>
+<div class="line"><span class="ln">5</span><span class="cl">      </span><span class="cl st">"arn:aws:secretsmanager:eu-west-2:${local.account_id}"</span></div>
+<div class="line"><span class="ln">6</span><span class="cl">      </span><span class="cl st">":secret:app/prod/*"</span></div>
+<div class="line"><span class="ln">7</span><span class="cl lg">    ]</span></div>
+<div class="line"><span class="ln">8</span><span class="cl">  }</span></div>
+            </div></div>
+          </div>
+        </div>
+        <div class="tc" id="ic108-actions">
+          <div class="ig s"><div class="ib infob"><div class="ibt">Actions triggering CKV_AWS_108 (data exfiltration) when Resource = "*"</div><ul>
+            <li><code>s3:GetObject</code>, <code>s3:GetObjectVersion</code></li>
+            <li><code>secretsmanager:GetSecretValue</code></li>
+            <li><code>ssm:GetParameter</code>, <code>ssm:GetParameters</code>, <code>ssm:GetParametersByPath</code>, <code>ssm:GetParameterHistory</code></li>
+            <li><code>rds:CopyDBSnapshot</code>, <code>rds:CreateDBSnapshot</code></li>
+            <li><code>glacier:GetObject</code>, <code>glacier:InitiateJob</code></li>
+            <li>Fix: always scope <code>resources</code> to specific ARN prefixes per app/environment</li>
+          </ul></div></div>
+        </div>
+      </div>
+
+      <!-- CKV_AWS_109 -->
+      <div class="finding" id="iamcrit-f-ckv109">
+        <div class="fhdr"><div class="fmeta">
+          <div class="fcheck">CKV_AWS_109 · aws_iam_policy · aws_iam_policy_document</div>
+          <div class="ftitle">IAM policy allows permissions management without constraints</div>
+          <div class="fdesc">Fires when IAM control-plane actions (<code>iam:PutRolePolicy</code>, <code>iam:AttachRolePolicy</code>, <code>iam:CreatePolicy</code>) are granted on <code>Resource = "*"</code> without a <code>Condition</code>. A role with this policy can rewrite any other role's permissions — including granting itself admin.</div>
+        </div><span class="stag critical">Critical</span></div>
+        <div class="tabs"><div class="tab active" onclick="T(this,'ic109','diff')">Diff</div><div class="tab" onclick="T(this,'ic109','actions')">Trigger actions</div></div>
+        <div class="tc active" id="ic109-diff">
+          <div class="diff-grid">
+            <div class="cp"><div class="ch bad">✗ Vulnerable</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">    effect  = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl lb">    actions = [</span><span class="cl st">"iam:PutRolePolicy"</span><span class="cl">,</span></div>
+<div class="line"><span class="ln">4</span><span class="cl">               </span><span class="cl st">"iam:AttachRolePolicy"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">5</span><span class="cl lb">    resources = [</span><span class="cl lb st">"*"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">6</span><span class="cl lc">    # can mutate any role's policy</span></div>
+<div class="line"><span class="ln">7</span><span class="cl">  }</span></div>
+            </div></div>
+            <div class="cp"><div class="ch good">✓ Fixed — path + PolicyARN condition</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">    effect  = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl">    actions = [</span><span class="cl st">"iam:PutRolePolicy"</span><span class="cl">]</span></div>
+<div class="line"><span class="ln">4</span><span class="cl lg">    resources = [</span><span class="cl st">"arn:aws:iam::${local.account_id}:role/app/*"</span><span class="cl lg">]</span></div>
+<div class="line"><span class="ln">5</span><span class="cl lg">    condition {</span></div>
+<div class="line"><span class="ln">6</span><span class="cl lg">      test     = </span><span class="cl st">"StringLike"</span></div>
+<div class="line"><span class="ln">7</span><span class="cl lg">      variable = </span><span class="cl st">"iam:PolicyARN"</span></div>
+<div class="line"><span class="ln">8</span><span class="cl lg">      values   = [</span><span class="cl st">"arn:aws:iam::${local.account_id}:policy/app/*"</span><span class="cl lg">]</span></div>
+<div class="line"><span class="ln">9</span><span class="cl lg">    }</span></div>
+<div class="line"><span class="ln">10</span><span class="cl">  }</span></div>
+            </div></div>
+          </div>
+        </div>
+        <div class="tc" id="ic109-actions">
+          <div class="ig s"><div class="ib infob"><div class="ibt">Actions triggering CKV_AWS_109 when Resource = "*" and no Condition</div><ul>
+            <li><code>iam:PutRolePolicy</code> — writes inline policy to any role</li>
+            <li><code>iam:AttachRolePolicy</code> / <code>iam:AttachUserPolicy</code> / <code>iam:AttachGroupPolicy</code></li>
+            <li><code>iam:CreatePolicy</code>, <code>iam:CreatePolicyVersion</code>, <code>iam:SetDefaultPolicyVersion</code></li>
+            <li><code>iam:PutGroupPolicy</code>, <code>iam:PutUserPolicy</code></li>
+            <li><code>iam:AddUserToGroup</code> — can silently add user to an admin group</li>
+            <li>Fix: scope <code>resources</code> to an IAM path prefix and add a <code>Condition</code> on <code>iam:PolicyARN</code> or <code>iam:PermissionsBoundary</code></li>
+          </ul></div></div>
+        </div>
+      </div>
+
+      <!-- CKV_AWS_110 -->
+      <div class="finding" id="iamcrit-f-ckv110">
+        <div class="fhdr"><div class="fmeta">
+          <div class="fcheck">CKV_AWS_110 · aws_iam_policy · aws_iam_policy_document</div>
+          <div class="ftitle">IAM policy allows privilege escalation</div>
+          <div class="fdesc">Distinct from CKV_AWS_109 — catches indirect escalation paths where actions appear harmless individually but can be chained. The classic vector: <code>sts:AssumeRole</code> on <code>Resource = "*"</code> allows assuming any role including admin roles.</div>
+        </div><span class="stag critical">Critical</span></div>
+        <div class="tabs"><div class="tab active" onclick="T(this,'ic110','diff')">Diff</div><div class="tab" onclick="T(this,'ic110','vectors')">Escalation vectors</div></div>
+        <div class="tc active" id="ic110-diff">
+          <div class="diff-grid">
+            <div class="cp"><div class="ch bad">✗ Vulnerable — unconstrained assume role</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">    effect  = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl lb">    actions = [</span><span class="cl lb st">"sts:AssumeRole"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">4</span><span class="cl lb">    resources = [</span><span class="cl lb st">"*"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">5</span><span class="cl lc">    # can assume ANY role inc. admin</span></div>
+<div class="line"><span class="ln">6</span><span class="cl">  }</span></div>
+            </div></div>
+            <div class="cp"><div class="ch good">✓ Fixed — explicit role ARNs only</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">    effect  = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl">    actions = [</span><span class="cl st">"sts:AssumeRole"</span><span class="cl">]</span></div>
+<div class="line"><span class="ln">4</span><span class="cl lg">    resources = [</span></div>
+<div class="line"><span class="ln">5</span><span class="cl">      </span><span class="cl st">"arn:aws:iam::${local.account_id}:role/app-deploy"</span><span class="cl">,</span></div>
+<div class="line"><span class="ln">6</span><span class="cl">      </span><span class="cl st">"arn:aws:iam::${local.account_id}:role/app-read"</span></div>
+<div class="line"><span class="ln">7</span><span class="cl lg">    ]</span></div>
+<div class="line"><span class="ln">8</span><span class="cl">  }</span></div>
+            </div></div>
+          </div>
+          <div class="ig">
+            <div class="ib"><div class="ibt">109 vs 110 — what's the difference</div><ul>
+              <li><strong style="font-weight:600">CKV_AWS_109</strong> — direct policy mutation (rewriting another role's policy directly)</li>
+              <li><strong style="font-weight:600">CKV_AWS_110</strong> — indirect escalation (actions that can be chained to reach higher access)</li>
+              <li>Example chain: <code>iam:CreatePolicyVersion</code> → create permissive version of existing policy → <code>iam:SetDefaultPolicyVersion</code> → activate it silently</li>
+            </ul></div>
+            <div class="ib"><div class="ibt">Permissions boundary mitigation</div><ul>
+              <li>AWS Permissions Boundaries cap what a role can grant even if it can write policies</li>
+              <li>Require <code>iam:PermissionsBoundary</code> condition on all <code>iam:CreateRole</code> actions</li>
+              <li>Enforce via SCP at org level for defence-in-depth</li>
+            </ul></div>
+          </div>
+        </div>
+        <div class="tc" id="ic110-vectors">
+          <div class="ig s"><div class="ib warn"><div class="ibt">Known privilege escalation action vectors (trigger CKV_AWS_110)</div><ul>
+            <li><code>sts:AssumeRole</code> on <code>"*"</code> — assume any role including admin roles</li>
+            <li><code>iam:CreatePolicyVersion</code> — overwrite an existing policy to grant full admin</li>
+            <li><code>iam:SetDefaultPolicyVersion</code> — activate a previously created permissive version</li>
+            <li><code>iam:PassRole</code> on <code>"*"</code> — pass a privileged role to Lambda/EC2 to execute arbitrary code under that role</li>
+            <li><code>iam:CreateRole</code> + <code>iam:AttachRolePolicy</code> without path constraint — create a new admin role</li>
+            <li><code>lambda:UpdateFunctionCode</code> on a function running as an admin role — replace code to exfiltrate credentials</li>
+          </ul></div></div>
+        </div>
+      </div>
+
+      <!-- CKV2_AWS_40 -->
+      <div class="finding" id="iamcrit-f-ckv2aws40">
+        <div class="fhdr"><div class="fmeta">
+          <div class="fcheck">CKV2_AWS_40 · aws_iam_policy · aws_iam_role_policy</div>
+          <div class="ftitle">IAM managed policy grants full IAM privileges (<code style="font-size:15px;background:none;padding:0">iam:*</code>)</div>
+          <div class="fdesc">The v2 companion to CKV_AWS_1. Targets managed policies (<code>aws_iam_policy</code>) and inline role policies (<code>aws_iam_role_policy</code>). Fires when the policy grants <code>iam:*</code> on <code>Resource = "*"</code> — full IAM control without necessarily being a full admin policy.</div>
+        </div><span class="stag critical">Critical</span></div>
+        <div class="alert warn"><span>⚠</span><span>CKV_AWS_1 and CKV2_AWS_40 are distinct. CKV_AWS_1 catches <code>Action = "*"</code> (all services). CKV2_AWS_40 catches <code>iam:*</code> specifically — full IAM control even if other actions are scoped. Both can fire on the same resource simultaneously.</span></div>
+        <div class="diff-grid">
+          <div class="cp"><div class="ch bad">✗ Vulnerable — iam:* on managed policy</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl kw">resource </span><span class="cl st">"aws_iam_policy"</span><span class="cl"> </span><span class="cl st">"bad"</span><span class="cl"> {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">  name   = </span><span class="cl st">"bad-iam-policy"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl">  policy = jsonencode({</span></div>
+<div class="line"><span class="ln">4</span><span class="cl">    Statement = [{ Effect = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">5</span><span class="cl lb">      Action   = [</span><span class="cl lb st">"iam:*"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">6</span><span class="cl lb">      Resource = </span><span class="cl lb st">"*"</span><span class="cl"> }]</span></div>
+<div class="line"><span class="ln">7</span><span class="cl">  })</span></div>
+<div class="line"><span class="ln">8</span><span class="cl">}</span></div>
+          </div></div>
+          <div class="cp"><div class="ch good">✓ Fixed — explicit read-only IAM actions</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl kw">resource </span><span class="cl st">"aws_iam_policy"</span><span class="cl"> </span><span class="cl st">"good"</span><span class="cl"> {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">  name   = </span><span class="cl st">"app-iam-read"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl">  policy = jsonencode({</span></div>
+<div class="line"><span class="ln">4</span><span class="cl">    Statement = [{ Effect = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">5</span><span class="cl lg">      Action = [</span><span class="cl st">"iam:GetRole"</span><span class="cl">, </span><span class="cl st">"iam:ListRoles"</span><span class="cl">,</span></div>
+<div class="line"><span class="ln">6</span><span class="cl">                </span><span class="cl st">"iam:GetPolicy"</span><span class="cl">, </span><span class="cl st">"iam:ListPolicies"</span><span class="cl lg">]</span></div>
+<div class="line"><span class="ln">7</span><span class="cl lg">      Resource = </span><span class="cl st">"*"</span><span class="cl lc"> # list ops require "*"</span></div>
+<div class="line"><span class="ln">8</span><span class="cl">    }]</span></div>
+<div class="line"><span class="ln">9</span><span class="cl">  })</span></div>
+<div class="line"><span class="ln">10</span><span class="cl">}</span></div>
+          </div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PANEL: ALL-PASSING TEMPLATE
+══════════════════════════════════════ -->
+<div class="panel" id="panel-summary">
+  <div class="sum-hero">
+    <h2>All-Passing Reference Template</h2>
+    <p>A production-ready Terraform configuration combining <code style="font-family:var(--mono);font-size:12px;background:rgba(255,255,255,0.07);padding:1px 5px;border-radius:3px">aws_kms_key</code> with an explicit policy and a scoped <code style="font-family:var(--mono);font-size:12px;background:rgba(255,255,255,0.07);padding:1px 5px;border-radius:3px">aws_iam_policy_document</code> for consuming roles. Every check documented in this reference passes against this configuration.</p>
+  </div>
+  <div class="sum-stats">
+    <div class="sum-stat"><div class="sum-stat-n r">9</div><div class="sum-stat-l">Critical checks passing</div></div>
+    <div class="sum-stat"><div class="sum-stat-n a">2</div><div class="sum-stat-l">High checks passing</div></div>
+    <div class="sum-stat"><div class="sum-stat-n b">4</div><div class="sum-stat-l">Resource types covered</div></div>
+    <div class="sum-stat"><div class="sum-stat-n g">14</div><div class="sum-stat-l">Total checks passing</div></div>
+  </div>
+  <div class="sum-code">
+    <div class="cp"><div class="ch neu" style="justify-content:space-between"><span>main.tf — complete all-passing configuration</span><button class="copy-btn" onclick="cpCode('full-tpl',this)">Copy</button></div><div class="cb" id="full-tpl">
+<div class="line"><span class="ln">1</span><span class="cl kw">data </span><span class="cl st">"aws_caller_identity"</span><span class="cl"> </span><span class="cl st">"current"</span><span class="cl"> {}</span></div>
+<div class="line"><span class="ln">2</span><span class="cl"></span></div>
+<div class="line"><span class="ln">3</span><span class="cl kw">locals </span><span class="cl">{</span></div>
+<div class="line"><span class="ln">4</span><span class="cl">  account_id = data.aws_caller_identity.current.account_id</span></div>
+<div class="line"><span class="ln">5</span><span class="cl lc">  # Curated KMS use-only action list — satisfies CKV_AWS_49, CKV_AWS_356</span></div>
+<div class="line"><span class="ln">6</span><span class="cl ky">  kms_use_actions </span><span class="cl">= [</span></div>
+<div class="line"><span class="ln">7</span><span class="cl">    </span><span class="cl st">"kms:Decrypt"</span><span class="cl">, </span><span class="cl st">"kms:Encrypt"</span><span class="cl">, </span><span class="cl st">"kms:ReEncrypt*"</span><span class="cl">,</span></div>
+<div class="line"><span class="ln">8</span><span class="cl">    </span><span class="cl st">"kms:GenerateDataKey"</span><span class="cl">, </span><span class="cl st">"kms:GenerateDataKeyWithoutPlaintext"</span><span class="cl">,</span></div>
+<div class="line"><span class="ln">9</span><span class="cl">    </span><span class="cl st">"kms:DescribeKey"</span></div>
+<div class="line"><span class="ln">10</span><span class="cl">  ]</span></div>
+<div class="line"><span class="ln">11</span><span class="cl">}</span></div>
+<div class="line"><span class="ln">12</span><span class="cl"></span></div>
+<div class="line"><span class="ln">13</span><span class="cl lc"># ── KMS Key ────────────────────────────────────────────────────────</span></div>
+<div class="line"><span class="ln">14</span><span class="cl kw">resource </span><span class="cl st">"aws_kms_key"</span><span class="cl"> </span><span class="cl st">"this"</span><span class="cl"> {</span></div>
+<div class="line"><span class="ln">15</span><span class="cl">  description             = </span><span class="cl st">"application encryption key"</span></div>
+<div class="line"><span class="ln">16</span><span class="cl lg">  enable_key_rotation     = </span><span class="cl kw">true</span><span class="cl lc">                    # CKV_AWS_7 ✓</span></div>
+<div class="line"><span class="ln">17</span><span class="cl lg">  is_enabled              = </span><span class="cl kw">true</span><span class="cl lc">                    # CKV_AWS_227 ✓</span></div>
+<div class="line"><span class="ln">18</span><span class="cl">  deletion_window_in_days = 30</span></div>
+<div class="line"><span class="ln">19</span><span class="cl lg">  policy = data.aws_iam_policy_document.kms_key_policy.json   </span><span class="cl lc"># CKV2_AWS_6 ✓</span></div>
+<div class="line"><span class="ln">20</span><span class="cl">}</span></div>
+<div class="line"><span class="ln">21</span><span class="cl"></span></div>
+<div class="line"><span class="ln">22</span><span class="cl lc"># ── Key Policy ─────────────────────────────────────────────────────</span></div>
+<div class="line"><span class="ln">23</span><span class="cl kw">data </span><span class="cl st">"aws_iam_policy_document"</span><span class="cl"> </span><span class="cl st">"kms_key_policy"</span><span class="cl"> {</span></div>
+<div class="line"><span class="ln">24</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">25</span><span class="cl">    sid    = </span><span class="cl st">"KeyAdminOnly"</span></div>
+<div class="line"><span class="ln">26</span><span class="cl">    effect = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">27</span><span class="cl">    principals {</span></div>
+<div class="line"><span class="ln">28</span><span class="cl">      type        = </span><span class="cl st">"AWS"</span></div>
+<div class="line"><span class="ln">29</span><span class="cl lg">      identifiers = [</span><span class="cl st">"arn:aws:iam::${local.account_id}:role/infra-admin"</span><span class="cl lg">]  </span><span class="cl lc"># CKV_AWS_111 ✓</span></div>
+<div class="line"><span class="ln">30</span><span class="cl">    }</span></div>
+<div class="line"><span class="ln">31</span><span class="cl">    actions = [</span></div>
+<div class="line"><span class="ln">32</span><span class="cl lg">      </span><span class="cl st">"kms:Create*"</span><span class="cl">, </span><span class="cl st">"kms:Describe*"</span><span class="cl">, </span><span class="cl st">"kms:Enable*"</span><span class="cl">, </span><span class="cl st">"kms:List*"</span><span class="cl">,</span></div>
+<div class="line"><span class="ln">33</span><span class="cl">      </span><span class="cl st">"kms:Put*"</span><span class="cl">, </span><span class="cl st">"kms:Update*"</span><span class="cl">, </span><span class="cl st">"kms:Disable*"</span><span class="cl">, </span><span class="cl st">"kms:Delete*"</span><span class="cl">,</span></div>
+<div class="line"><span class="ln">34</span><span class="cl">      </span><span class="cl st">"kms:ScheduleKeyDeletion"</span><span class="cl">, </span><span class="cl st">"kms:CancelKeyDeletion"</span><span class="cl lc">  # CKV_AWS_356 ✓</span></div>
+<div class="line"><span class="ln">35</span><span class="cl">    ]</span></div>
+<div class="line"><span class="ln">36</span><span class="cl">    resources = [</span><span class="cl st">"*"</span><span class="cl">]</span></div>
+<div class="line"><span class="ln">37</span><span class="cl">  }</span></div>
+<div class="line"><span class="ln">38</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">39</span><span class="cl">    sid    = </span><span class="cl st">"AppUse"</span></div>
+<div class="line"><span class="ln">40</span><span class="cl">    effect = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">41</span><span class="cl">    principals { type = </span><span class="cl st">"AWS"</span><span class="cl">; identifiers = [module.app_role.arn] }</span></div>
+<div class="line"><span class="ln">42</span><span class="cl lg">    actions   = local.kms_use_actions</span></div>
+<div class="line"><span class="ln">43</span><span class="cl">    resources = [</span><span class="cl st">"*"</span><span class="cl">]</span></div>
+<div class="line"><span class="ln">44</span><span class="cl">  }</span></div>
+<div class="line"><span class="ln">45</span><span class="cl">}</span></div>
+<div class="line"><span class="ln">46</span><span class="cl"></span></div>
+<div class="line"><span class="ln">47</span><span class="cl lc"># ── IAM policy for consuming role ──────────────────────────────────</span></div>
+<div class="line"><span class="ln">48</span><span class="cl kw">data </span><span class="cl st">"aws_iam_policy_document"</span><span class="cl"> </span><span class="cl st">"app_kms"</span><span class="cl"> {</span></div>
+<div class="line"><span class="ln">49</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">50</span><span class="cl">    effect    = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">51</span><span class="cl lg">    actions   = local.kms_use_actions         </span><span class="cl lc"># CKV_AWS_49 ✓  CKV2_AWS_40 ✓</span></div>
+<div class="line"><span class="ln">52</span><span class="cl lg">    resources = [aws_kms_key.this.arn]        </span><span class="cl lc"># CKV_AWS_356 ✓  CKV_AWS_111 ✓</span></div>
+<div class="line"><span class="ln">53</span><span class="cl">  }</span></div>
+<div class="line"><span class="ln">54</span><span class="cl">}</span></div>
+    </div></div>
+
+    <div class="ps">
+      <div class="ps-l"><span class="ps-d p"></span><span style="color:var(--text3);min-width:110px;font-size:9px;letter-spacing:1px;text-transform:uppercase" class="ps-cat">KMS key</span><span style="color:var(--green);font-weight:600;min-width:120px">CKV_AWS_7</span><span style="color:var(--text3)">enable_key_rotation = true</span></div>
+      <div class="ps-l"><span class="ps-d p"></span><span class="ps-cat"></span><span style="color:var(--green);font-weight:600;min-width:120px">CKV_AWS_227</span><span style="color:var(--text3)">is_enabled = true</span></div>
+      <div class="ps-l"><span class="ps-d p"></span><span class="ps-cat"></span><span style="color:var(--green);font-weight:600;min-width:120px">CKV2_AWS_6</span><span style="color:var(--text3)">Explicit policy block defined</span></div>
+      <div class="ps-l"><span class="ps-d p"></span><span style="color:var(--text3);min-width:110px;font-size:9px;letter-spacing:1px;text-transform:uppercase" class="ps-cat">Key policy</span><span style="color:var(--green);font-weight:600;min-width:120px">CKV_AWS_111</span><span style="color:var(--text3)">Principal scoped to specific role ARN, not "*"</span></div>
+      <div class="ps-l"><span class="ps-d p"></span><span class="ps-cat"></span><span style="color:var(--green);font-weight:600;min-width:120px">CKV_AWS_356</span><span style="color:var(--text3)">Explicit action list — no kms:* wildcard</span></div>
+      <div class="ps-l"><span class="ps-d p"></span><span style="color:var(--text3);min-width:110px;font-size:9px;letter-spacing:1px;text-transform:uppercase" class="ps-cat">IAM policy</span><span style="color:var(--green);font-weight:600;min-width:120px">CKV_AWS_1</span><span style="color:var(--text3)">No Action:* Resource:* admin statement</span></div>
+      <div class="ps-l"><span class="ps-d p"></span><span class="ps-cat"></span><span style="color:var(--green);font-weight:600;min-width:120px">CKV_AWS_49</span><span style="color:var(--text3)">No kms:* wildcard — explicit action list used</span></div>
+      <div class="ps-l"><span class="ps-d p"></span><span class="ps-cat"></span><span style="color:var(--green);font-weight:600;min-width:120px">CKV_AWS_356</span><span style="color:var(--text3)">Resource scoped to specific key ARN</span></div>
+      <div class="ps-l"><span class="ps-d p"></span><span class="ps-cat"></span><span style="color:var(--green);font-weight:600;min-width:120px">CKV_AWS_111</span><span style="color:var(--text3)">Write actions constrained to key ARN</span></div>
+      <div class="ps-l"><span class="ps-d p"></span><span class="ps-cat"></span><span style="color:var(--green);font-weight:600;min-width:120px">CKV_AWS_107</span><span style="color:var(--text3)">No credentials exposure actions</span></div>
+      <div class="ps-l"><span class="ps-d p"></span><span class="ps-cat"></span><span style="color:var(--green);font-weight:600;min-width:120px">CKV_AWS_108</span><span style="color:var(--text3)">Data-read actions scoped to specific resource ARNs</span></div>
+      <div class="ps-l"><span class="ps-d p"></span><span class="ps-cat"></span><span style="color:var(--green);font-weight:600;min-width:120px">CKV_AWS_109</span><span style="color:var(--text3)">Permissions management actions scoped with condition</span></div>
+      <div class="ps-l"><span class="ps-d p"></span><span class="ps-cat"></span><span style="color:var(--green);font-weight:600;min-width:120px">CKV_AWS_110</span><span style="color:var(--text3)">Escalation vectors scoped to explicit role ARNs</span></div>
+      <div class="ps-l"><span class="ps-d p"></span><span class="ps-cat"></span><span style="color:var(--green);font-weight:600;min-width:120px">CKV2_AWS_40</span><span style="color:var(--text3)">No iam:* on managed policies</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchPanel(name, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.topnav-link').forEach(l => l.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  if (el && el.classList) el.classList.add('active');
+}
+function showF(section, id) {
+  document.querySelectorAll('#panel-' + section + ' .finding').forEach(f => f.classList.remove('active'));
+  const el = document.getElementById(section + '-f-' + id);
+  if (el) el.classList.add('active');
+}
+function setStat(el, section) {
+  document.querySelectorAll('#panel-' + section + ' .stat-pill').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+}
+function setNav(section, id) {
+  document.querySelectorAll('#panel-' + section + ' .nav-item').forEach(n => n.classList.remove('active'));
+  const el = document.getElementById(section + '-n-' + id);
+  if (el) el.classList.add('active');
+}
+function T(tabEl, prefix, name) {
+  const panel = tabEl.closest('.finding');
+  panel.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  panel.querySelectorAll('.tc').forEach(tc => tc.classList.remove('active'));
+  tabEl.classList.add('active');
+  const c = document.getElementById(prefix + '-' + name);
+  if (c) c.classList.add('active');
+}
+function cpCode(id, btn) {
+  const el = document.getElementById(id);
+  const lines = [...el.querySelectorAll('.line')].map(l =>
+    [...l.querySelectorAll('[class^="cl"],[class*=" cl"]')].map(s => s.textContent).join('')
+  ).join('\n');
+  navigator.clipboard.writeText(lines).then(() => {
+    btn.textContent = 'Copied!'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+/* ═══════════════════════════════════════
+   GITLAB CI PIPELINE SIMULATOR
+═══════════════════════════════════════ */
+const SCENARIOS = {
+  critical: {
+    mrTitle: 'feat: add KMS key for app-prod encryption',
+    mrMeta:  'mo → main · 3 files changed',
+    validateLogs: [
+      ['00:01','$ terraform init -backend=false','w'],
+      ['00:02','Initializing provider plugins...','dim'],
+      ['00:03','- Finding hashicorp/aws versions matching "~> 5.0"...','dim'],
+      ['00:04','Terraform has been successfully initialized!','g'],
+      ['00:05','$ terraform fmt -check -recursive','w'],
+      ['00:05','All files formatted correctly.','g'],
+      ['00:06','$ terraform validate','w'],
+      ['00:07','Success! The configuration is valid.','g'],
+    ],
+    validateStatus:'passed', validateDur:'8s',
+    sastLogs: [
+      ['00:08','$ kics scan --path . --report-formats json,html --fail-on CRITICAL,HIGH','w'],
+      ['00:09','Scanning Terraform files...','dim'],
+      ['00:10','Found 6 Terraform files to scan','dim'],
+      ['00:11','Running 847 queries against aws/kms, aws/iam...','dim'],
+      ['00:14','Scan complete — writing reports to reports/','dim'],
+      ['00:14','',''],
+      ['00:14','RESULTS SUMMARY','w'],
+      ['00:14','────────────────────────────────────────','dim'],
+      ['00:14','CRITICAL  3   HIGH  1   MEDIUM  0   LOW  0','r'],
+      ['00:14','────────────────────────────────────────','dim'],
+      ['00:15','KICS found results with severity CRITICAL','r'],
+      ['00:15','Exit code: 50 (findings detected above threshold)','r'],
+    ],
+    sastStatus:'failed', sastDur:'7s',
+    sastFindings: [
+      {sev:'C', id:'CKV_AWS_111', desc:'KMS key policy allows wildcard principal',          file:'modules/kms/main.tf', line:'14'},
+      {sev:'C', id:'CKV_AWS_356', desc:'KMS key policy uses wildcard action kms:*',         file:'modules/kms/main.tf', line:'18'},
+      {sev:'C', id:'CKV2_AWS_6',  desc:'No explicit key policy defined on aws_kms_key',    file:'modules/kms/main.tf', line:'4'},
+      {sev:'H', id:'CKV_AWS_7',   desc:'KMS key rotation not enabled',                      file:'modules/kms/main.tf', line:'4'},
+    ],
+    planLogs: [],
+    planStatus:'pending', planDur:'',
+    gateLogs: [
+      ['00:15','Stage skipped — dependency kics-iac-sast failed','r'],
+      ['00:15','Pipeline blocked at security gate','r'],
+    ],
+    gateStatus:'failed', gateDur:'0s',
+    gateResult: {
+      type:'blocked',
+      icon:'🔴',
+      title:'Merge blocked — 3 critical findings must be resolved',
+      body:'KICS found 3 critical and 1 high severity issues in your Terraform changes. The MR cannot be merged until all Critical findings are fixed and the pipeline passes. Go to the KMS Key Policy section of this reference to see the exact fixes for each check ID.'
+    }
+  },
+  high: {
+    mrTitle: 'fix: enable KMS key rotation for app-prod',
+    mrMeta:  'mo → main · 1 file changed',
+    validateLogs: [
+      ['00:01','$ terraform init -backend=false','w'],
+      ['00:03','Terraform has been successfully initialized!','g'],
+      ['00:04','$ terraform fmt -check -recursive','w'],
+      ['00:04','All files formatted correctly.','g'],
+      ['00:05','$ terraform validate','w'],
+      ['00:05','Success! The configuration is valid.','g'],
+    ],
+    validateStatus:'passed', validateDur:'6s',
+    sastLogs: [
+      ['00:06','$ kics scan --path . --report-formats json,html --fail-on CRITICAL,HIGH','w'],
+      ['00:07','Scanning Terraform files...','dim'],
+      ['00:08','Running 847 queries against aws/kms, aws/iam...','dim'],
+      ['00:11','Scan complete — writing reports to reports/','dim'],
+      ['00:11','',''],
+      ['00:11','RESULTS SUMMARY','w'],
+      ['00:11','────────────────────────────────────────','dim'],
+      ['00:11','CRITICAL  0   HIGH  1   MEDIUM  0   LOW  0','a'],
+      ['00:11','────────────────────────────────────────','dim'],
+      ['00:12','KICS found results with severity HIGH','a'],
+      ['00:12','Exit code: 50 (findings detected above threshold)','a'],
+    ],
+    sastStatus:'failed', sastDur:'6s',
+    sastFindings: [
+      {sev:'H', id:'CKV_AWS_227', desc:'KMS key is_enabled set to false',  file:'modules/kms/main.tf', line:'9'},
+    ],
+    planLogs: [],
+    planStatus:'pending', planDur:'',
+    gateLogs: [
+      ['00:12','Stage skipped — dependency kics-iac-sast failed','a'],
+      ['00:12','Pipeline blocked — High severity findings require attention','a'],
+    ],
+    gateStatus:'failed', gateDur:'0s',
+    gateResult: {
+      type:'warn-g',
+      icon:'🟡',
+      title:'Pipeline failed — High finding detected',
+      body:'No critical findings, but CKV_AWS_227 (High) was found. With --fail-on CRITICAL,HIGH this still blocks the merge. To allow High findings through as warnings only, change the flag to --fail-on CRITICAL. Best practice in financial services is to block on both Critical and High.'
+    }
+  },
+  clean: {
+    mrTitle: 'fix: remediate all KICS KMS findings',
+    mrMeta:  'mo → main · 4 files changed',
+    validateLogs: [
+      ['00:01','$ terraform init -backend=false','w'],
+      ['00:03','Terraform has been successfully initialized!','g'],
+      ['00:04','$ terraform fmt -check -recursive','w'],
+      ['00:04','All files formatted correctly.','g'],
+      ['00:05','$ terraform validate','w'],
+      ['00:05','Success! The configuration is valid.','g'],
+    ],
+    validateStatus:'passed', validateDur:'5s',
+    sastLogs: [
+      ['00:06','$ kics scan --path . --report-formats json,html --fail-on CRITICAL,HIGH','w'],
+      ['00:07','Scanning Terraform files...','dim'],
+      ['00:08','Running 847 queries against aws/kms, aws/iam...','dim'],
+      ['00:10','Scan complete — writing reports to reports/','dim'],
+      ['00:10','',''],
+      ['00:10','RESULTS SUMMARY','w'],
+      ['00:10','────────────────────────────────────────','dim'],
+      ['00:10','CRITICAL  0   HIGH  0   MEDIUM  0   LOW  0','g'],
+      ['00:10','────────────────────────────────────────','dim'],
+      ['00:11','No results were found — all checks passed!','g'],
+      ['00:11','Exit code: 0 (clean scan)','g'],
+    ],
+    sastStatus:'passed', sastDur:'5s',
+    sastFindings: [],
+    planLogs: [
+      ['00:12','$ terraform init','w'],
+      ['00:13','Initializing the backend (S3)...','dim'],
+      ['00:13','Initializing provider plugins...','dim'],
+      ['00:14','Terraform has been successfully initialized!','g'],
+      ['00:14','$ terraform plan -out=tfplan','w'],
+      ['00:15','aws_kms_key.this: Refreshing state... [id=mrk-abc123]','dim'],
+      ['00:16','Plan: 2 to add, 1 to change, 0 to destroy.','g'],
+      ['00:16','Saved plan to tfplan','g'],
+    ],
+    planStatus:'passed', planDur:'5s',
+    gateLogs: [
+      ['00:17','$ python3 scripts/kics_gate.py --report reports/kics-results.json --fail-on CRITICAL','w'],
+      ['00:17','Parsing KICS report: reports/kics-results.json','dim'],
+      ['00:17','Critical findings: 0','g'],
+      ['00:17','High findings:     0','g'],
+      ['00:17','All security gates passed.','g'],
+      ['00:18','Pipeline status: PASSED — MR is clear to merge','g'],
+    ],
+    gateStatus:'passed', gateDur:'2s',
+    gateResult: {
+      type:'clear',
+      icon:'✅',
+      title:'All security gates passed — MR is clear to merge',
+      body:'KICS found zero Critical or High findings. The Terraform plan completed successfully. The MR is eligible for approval and merge. All 14 checks documented in this reference are passing against this configuration.'
+    }
+  }
+};
+
+let currentScenario = 'critical';
+let pipelineRunning = false;
+let currentViewStage = 'welcome';
+
+function setScenario(sc, btn) {
+  if (pipelineRunning) return;
+  currentScenario = sc;
+  document.querySelectorAll('.sc-btn').forEach(b => { b.classList.remove('active','fail-sc','pass-sc'); });
+  btn.classList.add('active');
+  if (sc==='critical') btn.classList.add('fail-sc');
+  if (sc==='clean') btn.classList.add('pass-sc');
+  const s = SCENARIOS[sc];
+  document.getElementById('mr-title').textContent = s.mrTitle;
+  document.getElementById('mr-meta').innerHTML = s.mrMeta + ' · <span id="mr-branch" class="mr-bar-branch">' + (sc==='critical'?'feature/kms-key-app-prod': sc==='high'?'fix/enable-kms-rotation':'fix/remediate-kics-findings') + '</span>';
+  resetPipeline();
+}
+
+function resetPipeline() {
+  ['validate','sast','plan','gate'].forEach(s => {
+    const el = document.getElementById('stage-'+s);
+    el.className = 'pl-stage pending';
+    document.getElementById('dur-'+s).textContent = '';
+  });
+  document.getElementById('sd-title').textContent = 'Select a stage above or run the pipeline';
+  document.getElementById('sd-badge').className = 'sd-badge pending';
+  document.getElementById('sd-badge').textContent = 'pending';
+  document.getElementById('sd-icon').textContent = '💤';
+  document.getElementById('sd-dur').textContent = '';
+  document.querySelectorAll('.sd-view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-welcome').classList.add('active');
+  currentViewStage = 'welcome';
+  ['term-validate','term-sast','term-plan','term-gate'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.innerHTML='';
+  });
+  document.getElementById('findings-table-wrap').style.display='none';
+  document.getElementById('gate-result').innerHTML='';
+  document.getElementById('run-btn').disabled = false;
+  document.getElementById('run-btn').textContent = '▶ Run pipeline';
+}
+
+async function runPipeline() {
+  if (pipelineRunning) return;
+  pipelineRunning = true;
+  document.getElementById('run-btn').disabled = true;
+  document.getElementById('run-btn').textContent = '⏳ Running…';
+  const s = SCENARIOS[currentScenario];
+
+  // Reset all stages first
+  ['validate','sast','plan','gate'].forEach(st => {
+    document.getElementById('stage-'+st).className = 'pl-stage pending';
+    document.getElementById('dur-'+st).textContent = '';
+  });
+
+  // VALIDATE
+  await runStage('validate', s.validateLogs, s.validateStatus, s.validateDur);
+  if (s.validateStatus === 'failed') { endPipeline(); return; }
+
+  // SAST
+  await runStage('sast', s.sastLogs, s.sastStatus, s.sastDur);
+  // populate findings table regardless
+  populateFindings(s.sastFindings);
+  if (s.sastStatus === 'failed') {
+    // show gate as skipped
+    await runStage('gate', s.gateLogs, s.gateStatus, s.gateDur);
+    endPipeline(); return;
+  }
+
+  // PLAN
+  await runStage('plan', s.planLogs, s.planStatus, s.planDur);
+
+  // GATE
+  await runStage('gate', s.gateLogs, s.gateStatus, s.gateDur);
+  showGateResult(s.gateResult);
+  endPipeline();
+}
+
+function endPipeline() {
+  pipelineRunning = false;
+  document.getElementById('run-btn').disabled = false;
+  document.getElementById('run-btn').textContent = '↺ Run again';
+}
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function runStage(stageName, logs, status, dur) {
+  const el = document.getElementById('stage-'+stageName);
+  el.className = 'pl-stage running active-view';
+  viewStage(stageName);
+  await delay(300);
+  const termId = 'term-'+stageName;
+  const term = document.getElementById(termId);
+  if (term && logs.length) {
+    for (let i = 0; i < logs.length; i++) {
+      const [ts, msg, cls] = logs[i];
+      const line = document.createElement('div');
+      line.className = 'term-line';
+      line.innerHTML = `<span class="term-t">${ts}</span><span class="term-s ${cls}">${msg}</span>`;
+      term.appendChild(line);
+      await delay(10);
+      line.classList.add('vis');
+      await delay(currentScenario==='clean'?120:140);
+    }
+  } else if (term) {
+    const line = document.createElement('div');
+    line.className = 'term-line vis';
+    line.innerHTML = `<span class="term-t">--:--</span><span class="term-s dim">Stage skipped due to earlier failure</span>`;
+    term.appendChild(line);
+  }
+  await delay(400);
+  el.className = 'pl-stage ' + status + ' active-view';
+  document.getElementById('dur-'+stageName).textContent = dur;
+  viewStage(stageName);
+}
+
+function viewStage(stageName) {
+  // Update active-view styling
+  ['validate','sast','plan','gate'].forEach(s => {
+    const el = document.getElementById('stage-'+s);
+    if (!el) return;
+    el.classList.toggle('active-view', s === stageName);
+  });
+  currentViewStage = stageName;
+  // Update detail header
+  const stageMap = {
+    validate:{ icon:'✓',  label:'tf-validate', viewId:'validate' },
+    sast:    { icon:'🔍', label:'kics-iac-sast', viewId:'sast' },
+    plan:    { icon:'📋', label:'tf-plan',       viewId:'plan' },
+    gate:    { icon:'🔒', label:'security-gate', viewId:'gate' }
+  };
+  const m = stageMap[stageName]; if(!m) return;
+  const el = document.getElementById('stage-'+stageName);
+  const status = el ? [...el.classList].find(c=>['running','passed','failed','pending'].includes(c)) || 'pending' : 'pending';
+  document.getElementById('sd-icon').textContent = m.icon;
+  document.getElementById('sd-title').textContent = m.label;
+  const badge = document.getElementById('sd-badge');
+  badge.className = 'sd-badge ' + status;
+  badge.textContent = status === 'passed' ? 'passed' : status === 'failed' ? 'failed' : status === 'running' ? 'running' : 'pending';
+  const dur = document.getElementById('dur-'+stageName);
+  document.getElementById('sd-dur').textContent = dur ? dur.textContent : '';
+  // Switch view
+  document.querySelectorAll('.sd-view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-'+stageName).classList.add('active');
+  // Show findings table if sast
+  if (stageName === 'sast') {
+    const wrap = document.getElementById('findings-table-wrap');
+    const tbody = document.getElementById('findings-tbody');
+    if (wrap && tbody && tbody.children.length > 0) wrap.style.display = 'block';
+  }
+  // Show gate result if already rendered
+  if (stageName === 'gate') {
+    const gr = document.getElementById('gate-result');
+    if (gr && gr.innerHTML) gr.style.display = 'block';
+  }
+}
+
+function populateFindings(findings) {
+  const tbody = document.getElementById('findings-tbody');
+  tbody.innerHTML = '';
+  if (!findings || findings.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--green);padding:16px">✓ No findings — clean scan</td></tr>';
+    document.getElementById('findings-table-wrap').style.display = 'block';
+    return;
+  }
+  findings.forEach(f => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><span class="ftbl-sev ${f.sev}">${f.sev==='C'?'Critical':f.sev==='H'?'High':'Medium'}</span></td><td class="ftbl-id">${f.id}</td><td>${f.desc}</td><td class="ftbl-file">${f.file}</td><td class="ftbl-file">${f.line}</td>`;
+    tr.onclick = () => { const section = f.id.startsWith('CKV_AWS_1')&&!f.id.startsWith('CKV_AWS_10')&&!f.id.startsWith('CKV_AWS_11') ? 'iamcrit' : f.id.startsWith('CKV2_AWS_40') ? 'iamcrit' : 'kms'; switchPanel(section, document.querySelectorAll('.topnav-link')[section==='kms'?2:section==='iam'?3:4]); };
+    tr.title = 'Click to view this check in the reference';
+    tbody.appendChild(tr);
+  });
+  document.getElementById('findings-table-wrap').style.display = 'block';
+}
+
+function showGateResult(result) {
+  const gr = document.getElementById('gate-result');
+  gr.innerHTML = `<div class="mr-gate ${result.type}"><div class="mr-gate-icon">${result.icon}</div><div><div class="mr-gate-title">${result.title}</div><div class="mr-gate-body">${result.body}</div></div></div>`;
+}
+
+function showStep(idx) {
+  document.querySelectorAll('.step-card').forEach((c,i) => c.classList.toggle('active', i===idx));
+  document.querySelectorAll('.step-detail').forEach((d,i) => {
+    d.classList.toggle('active', i===idx);
+    d.style.display = i===idx ? 'block' : 'none';
+  });
+}
+
+// init step details visibility
+document.querySelectorAll('.step-detail').forEach((d,i) => { d.style.display = i===0?'block':'none'; });
+
+// init scenario display
+setScenario('critical', document.querySelector('.sc-btn.active'));
+</script>
+</body>
+</html>

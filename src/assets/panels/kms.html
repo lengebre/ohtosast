@@ -1,0 +1,241 @@
+<div class="panel" id="panel-kms">
+  <div class="stats-strip">
+    <div class="stat-pill active" onclick="showF('kms','ckv111');setStat(this,'kms')"><div class="sp-id">CKV_AWS_111</div><div class="sp-name">Wildcard principal</div><span class="sp-badge critical">Critical</span></div>
+    <div class="stat-pill" onclick="showF('kms','ckv356k');setStat(this,'kms')"><div class="sp-id">CKV_AWS_356</div><div class="sp-name">Wildcard actions</div><span class="sp-badge critical">Critical</span></div>
+    <div class="stat-pill" onclick="showF('kms','ckv2aws6');setStat(this,'kms')"><div class="sp-id">CKV2_AWS_6</div><div class="sp-name">No policy defined</div><span class="sp-badge critical">Critical</span></div>
+    <div class="stat-pill bh" onclick="showF('kms','ckv7');setStat(this,'kms')"><div class="sp-id">CKV_AWS_7</div><div class="sp-name">Rotation disabled</div><span class="sp-badge high">High</span></div>
+    <div class="stat-pill bh" onclick="showF('kms','ckv227');setStat(this,'kms')"><div class="sp-id">CKV_AWS_227</div><div class="sp-name">Key disabled</div><span class="sp-badge high">High</span></div>
+  </div>
+  <div class="findings-layout">
+    <aside class="findings-aside">
+      <div class="aside-head">KMS Key Checks</div>
+      <div class="nav-item active" id="kms-n-ckv111" onclick="showF('kms','ckv111');setNav('kms','ckv111')"><span class="nd c"></span><span class="nav-text">CKV_AWS_111</span></div>
+      <div class="nav-item" id="kms-n-ckv356k" onclick="showF('kms','ckv356k');setNav('kms','ckv356k')"><span class="nd c"></span><span class="nav-text">CKV_AWS_356</span></div>
+      <div class="nav-item" id="kms-n-ckv2aws6" onclick="showF('kms','ckv2aws6');setNav('kms','ckv2aws6')"><span class="nd c"></span><span class="nav-text">CKV2_AWS_6</span></div>
+      <div class="nav-div"></div>
+      <div class="nav-item ha" id="kms-n-ckv7" onclick="showF('kms','ckv7');setNav('kms','ckv7')"><span class="nd h"></span><span class="nav-text">CKV_AWS_7</span></div>
+      <div class="nav-item ha" id="kms-n-ckv227" onclick="showF('kms','ckv227');setNav('kms','ckv227')"><span class="nd h"></span><span class="nav-text">CKV_AWS_227</span></div>
+    </aside>
+    <div class="findings-content">
+
+      <!-- CKV_AWS_111 -->
+      <div class="finding active" id="kms-f-ckv111">
+        <div class="fhdr"><div class="fmeta">
+          <div class="fcheck">CKV_AWS_111 · aws_kms_key · aws_kms_key_policy</div>
+          <div class="ftitle">Wildcard principal with no condition</div>
+          <div class="fdesc">This finding appears when <code>Principal = "*"</code> is allowed with no <code>Condition</code>. Any AWS identity in any account could use the key. The same rule applies to <code>Principal = { AWS = "*" }</code>.</div>
+        </div><span class="stag critical">Critical</span></div>
+        <div class="tabs"><div class="tab active" onclick="T(this,'k111','diff')">Diff</div><div class="tab" onclick="T(this,'k111','cko')">KICS output</div><div class="tab" onclick="T(this,'k111','wka')">Condition workaround</div></div>
+        <div class="tc active" id="k111-diff">
+          <div class="diff-grid">
+            <div class="cp"><div class="ch bad">✗ Vulnerable</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">Statement = [{</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">  Effect = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl lb">  Principal = </span><span class="cl lb st">"*"</span></div>
+<div class="line"><span class="ln">4</span><span class="cl lb">  Action   = [</span><span class="cl lb st">"kms:*"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">5</span><span class="cl">  Resource = </span><span class="cl st">"*"</span></div>
+<div class="line"><span class="ln">6</span><span class="cl lc">  # no Condition block</span></div>
+<div class="line"><span class="ln">7</span><span class="cl">}]</span></div>
+            </div></div>
+            <div class="cp"><div class="ch good">✓ Fixed: scoped principal</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">Statement = [{</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">  Effect = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl lg">  Principal = { AWS = [</span></div>
+<div class="line"><span class="ln">4</span><span class="cl lg">    </span><span class="cl st">"arn:aws:iam::${local.account_id}:root"</span></div>
+<div class="line"><span class="ln">5</span><span class="cl lg">  ]}</span></div>
+<div class="line"><span class="ln">6</span><span class="cl lg">  Action   = local.kms_use_actions</span></div>
+<div class="line"><span class="ln">7</span><span class="cl">  Resource = </span><span class="cl st">"*"</span></div>
+<div class="line"><span class="ln">8</span><span class="cl">}]</span></div>
+            </div></div>
+          </div>
+          <div class="ig">
+            <div class="ib"><div class="ibt">What triggers it</div><ul>
+              <li>Allow + <code>"*"</code> principal + no Condition: all three together</li>
+              <li>Also <code>{ AWS = "*" }</code> with same pattern</li>
+              <li>Applies to both inline <code>policy</code> on <code>aws_kms_key</code> and the standalone <code>aws_kms_key_policy</code> resource</li>
+            </ul></div>
+            <div class="ib"><div class="ibt">What does NOT trigger it</div><ul>
+              <li>Specific role/user/account ARN as Principal</li>
+              <li>Service principal: <code>{ Service = "logs.amazonaws.com" }</code></li>
+              <li>Wildcard Principal WITH a <code>Condition</code> block present (see workaround tab)</li>
+            </ul></div>
+          </div>
+        </div>
+        <div class="tc" id="k111-cko"><div class="cko"><span class="cp-fail">Check: CKV_AWS_111: "Ensure IAM policies do not have statements with admin permissions"</span>
+<span class="cp-dim">	FAILED for resource: aws_kms_key.bad</span>
+<span class="cp-dim">	File: main.tf:1-7</span>
+
+<span class="cp-dim">	  2 |   Effect    = "Allow"</span>
+<span class="cp-fail">	  3 |   Principal = "*"</span>
+<span class="cp-fail">	  4 |   Action    = ["kms:*"]</span>
+
+<span class="cp-am">Passed checks: 0, Failed checks: 1, Skipped checks: 0</span></div></div>
+        <div class="tc" id="k111-wka">
+          <div class="alert warn"><span>⚠</span><span>If you genuinely need <code>Principal = "*"</code> (e.g. cross-account service access), KICS accepts it only when a <code>Condition</code> block is also present to restrict scope.</span></div>
+          <div class="diff-grid s"><div class="cp"><div class="ch good">✓ Accepted: wildcard principal + condition</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">Statement = [{</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">  Effect    = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl">  Principal = </span><span class="cl st">"*"</span></div>
+<div class="line"><span class="ln">4</span><span class="cl">  Action    = local.kms_use_actions</span></div>
+<div class="line"><span class="ln">5</span><span class="cl">  Resource  = </span><span class="cl st">"*"</span></div>
+<div class="line"><span class="ln">6</span><span class="cl lg">  Condition = {</span></div>
+<div class="line"><span class="ln">7</span><span class="cl lg">    StringEquals = {</span></div>
+<div class="line"><span class="ln">8</span><span class="cl lg">      </span><span class="cl st">"kms:CallerAccount"</span><span class="cl lg"> =</span></div>
+<div class="line"><span class="ln">9</span><span class="cl lg">        data.aws_caller_identity.current.account_id</span></div>
+<div class="line"><span class="ln">10</span><span class="cl lg">    }</span></div>
+<div class="line"><span class="ln">11</span><span class="cl lg">  }</span></div>
+<div class="line"><span class="ln">12</span><span class="cl">}]</span></div>
+          </div></div></div>
+        </div>
+      </div>
+
+      <!-- CKV_AWS_356 key -->
+      <div class="finding" id="kms-f-ckv356k">
+        <div class="fhdr"><div class="fmeta">
+          <div class="fcheck">CKV_AWS_356 · aws_kms_key · aws_kms_key_policy</div>
+          <div class="ftitle">Wildcard actions in key policy</div>
+          <div class="fdesc">This can still fire when the principal is narrowed but <code>Action</code> uses wildcards such as <code>kms:*</code> or <code>kms:Delete*</code>. Fix it by using two statements: one for admins with tight actions, one for app roles with a fixed list of KMS actions (no wildcards).</div>
+        </div><span class="stag critical">Critical</span></div>
+        <div class="tabs"><div class="tab active" onclick="T(this,'k356k','diff')">Diff</div><div class="tab" onclick="T(this,'k356k','al')">Action allowlists</div></div>
+        <div class="tc active" id="k356k-diff">
+          <div class="diff-grid">
+            <div class="cp"><div class="ch bad">✗ Vulnerable</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">  Principal = { AWS = module.app.role_arn }</span></div>
+<div class="line"><span class="ln">2</span><span class="cl lb">  Action    = [</span><span class="cl lb st">"kms:*"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">3</span><span class="cl lc">  # includes DeleteKey, PutKeyPolicy…</span></div>
+            </div></div>
+            <div class="cp"><div class="ch good">✓ Fixed: named locals</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">  Principal = { AWS = module.app.role_arn }</span></div>
+<div class="line"><span class="ln">2</span><span class="cl lg">  Action    = local.kms_use_actions</span></div>
+<div class="line"><span class="ln">3</span><span class="cl lc">  # Encrypt, Decrypt, GenerateDataKey…</span></div>
+            </div></div>
+          </div>
+        </div>
+        <div class="tc" id="k356k-al">
+          <div class="cp"><div class="ch neu" style="justify-content:space-between"><span>locals.tf: curated action sets</span><button class="copy-btn" onclick="cpCode('k356al-code',this)">Copy</button></div><div class="cb" id="k356al-code">
+<div class="line"><span class="ln">1</span><span class="cl kw">locals </span><span class="cl">{</span></div>
+<div class="line"><span class="ln">2</span><span class="cl lc">  # App role: data-plane only (use these for CKV_AWS_356)</span></div>
+<div class="line"><span class="ln">3</span><span class="cl ky">  kms_use_actions </span><span class="cl">= [</span></div>
+<div class="line"><span class="ln">4</span><span class="cl">    </span><span class="cl st">"kms:Decrypt"</span><span class="cl">, </span><span class="cl st">"kms:Encrypt"</span><span class="cl">,</span></div>
+<div class="line"><span class="ln">5</span><span class="cl">    </span><span class="cl st">"kms:ReEncrypt*"</span><span class="cl">, </span><span class="cl st">"kms:GenerateDataKey"</span><span class="cl">,</span></div>
+<div class="line"><span class="ln">6</span><span class="cl">    </span><span class="cl st">"kms:GenerateDataKeyWithoutPlaintext"</span><span class="cl">, </span><span class="cl st">"kms:DescribeKey"</span></div>
+<div class="line"><span class="ln">7</span><span class="cl">  ]</span></div>
+<div class="line"><span class="ln">8</span><span class="cl lc">  # Infra/admin role: control-plane</span></div>
+<div class="line"><span class="ln">9</span><span class="cl ky">  kms_admin_actions </span><span class="cl">= [</span></div>
+<div class="line"><span class="ln">10</span><span class="cl">    </span><span class="cl st">"kms:Create*"</span><span class="cl">, </span><span class="cl st">"kms:Describe*"</span><span class="cl">, </span><span class="cl st">"kms:Enable*"</span><span class="cl">,</span></div>
+<div class="line"><span class="ln">11</span><span class="cl">    </span><span class="cl st">"kms:List*"</span><span class="cl">, </span><span class="cl st">"kms:Put*"</span><span class="cl">, </span><span class="cl st">"kms:Update*"</span><span class="cl">,</span></div>
+<div class="line"><span class="ln">12</span><span class="cl">    </span><span class="cl st">"kms:Disable*"</span><span class="cl">, </span><span class="cl st">"kms:Delete*"</span><span class="cl">,</span></div>
+<div class="line"><span class="ln">13</span><span class="cl">    </span><span class="cl st">"kms:ScheduleKeyDeletion"</span><span class="cl">, </span><span class="cl st">"kms:CancelKeyDeletion"</span></div>
+<div class="line"><span class="ln">14</span><span class="cl">  ]</span></div>
+<div class="line"><span class="ln">15</span><span class="cl">}</span></div>
+          </div></div>
+        </div>
+      </div>
+
+      <!-- CKV2_AWS_6 -->
+      <div class="finding" id="kms-f-ckv2aws6">
+        <div class="fhdr"><div class="fmeta">
+          <div class="fcheck">CKV2_AWS_6 · aws_kms_key</div>
+          <div class="ftitle">No key policy defined: default policy applied</div>
+          <div class="fdesc">When the <code>policy</code> block is omitted from <code>aws_kms_key</code>, AWS silently applies a default policy granting the account root full <code>kms:*</code>. KICS skips CKV_AWS_111 (nothing to scan) but CKV2_AWS_6 catches the omission directly.</div>
+        </div><span class="stag critical">Critical</span></div>
+        <div class="alert warn"><span>⚠</span><span>Skipping the policy block avoids CKV_AWS_111 but triggers CKV2_AWS_6. At runtime AWS still applies a very open default (similar to <code>Principal="*"</code> and <code>Action="kms:*"</code>). The scanner cannot see that default, but the risk is real.</span></div>
+        <div class="diff-grid">
+          <div class="cp"><div class="ch bad">✗ No policy: CKV2_AWS_6 fires</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl kw">resource </span><span class="cl st">"aws_kms_key"</span><span class="cl"> </span><span class="cl st">"bad"</span><span class="cl"> {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">  description         = </span><span class="cl st">"app key"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl">  enable_key_rotation = </span><span class="cl kw">true</span></div>
+<div class="line"><span class="ln">4</span><span class="cl lb lc">  # policy block omitted entirely</span></div>
+<div class="line"><span class="ln">5</span><span class="cl lc">  # CKV_AWS_111 → skipped (nothing to scan)</span></div>
+<div class="line"><span class="ln">6</span><span class="cl lc">  # CKV2_AWS_6  → FAILS</span></div>
+<div class="line"><span class="ln">7</span><span class="cl">}</span></div>
+          </div></div>
+          <div class="cp"><div class="ch good">✓ Explicit policy required</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl kw">resource </span><span class="cl st">"aws_kms_key"</span><span class="cl"> </span><span class="cl st">"good"</span><span class="cl"> {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">  description         = </span><span class="cl st">"app key"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl">  enable_key_rotation = </span><span class="cl kw">true</span></div>
+<div class="line"><span class="ln">4</span><span class="cl lg">  policy = data.aws_iam_policy_document</span></div>
+<div class="line"><span class="ln">5</span><span class="cl lg">           .kms_policy.json</span></div>
+<div class="line"><span class="ln">6</span><span class="cl lc">  # CKV2_AWS_6 → PASSES</span></div>
+<div class="line"><span class="ln">7</span><span class="cl">}</span></div>
+          </div></div>
+        </div>
+        <div class="ig">
+          <div class="ib warn"><div class="ibt">Finding matrix: no policy block</div><ul>
+            <li>CKV_AWS_111 → <span style="color:var(--green)">skipped</span> (no block for the scanner to evaluate)</li>
+            <li>CKV2_AWS_6 → <span style="color:var(--red)">FAILS</span></li>
+            <li>CKV_AWS_7 and CKV_AWS_227 → still evaluated (separate attributes, unaffected)</li>
+          </ul></div>
+          <div class="ib infob"><div class="ibt">AWS default key policy (runtime, invisible to KICS)</div><ul>
+            <li>Principal: account root ARN (<code>arn:aws:iam::ACCOUNT:root</code>)</li>
+            <li>Action: <code>kms:*</code> · Resource: <code>*</code></li>
+            <li>Functionally identical to the pattern that triggers CKV_AWS_111 and CKV_AWS_356 when written explicitly</li>
+          </ul></div>
+        </div>
+      </div>
+
+      <!-- CKV_AWS_7 -->
+      <div class="finding" id="kms-f-ckv7">
+        <div class="fhdr"><div class="fmeta">
+          <div class="fcheck">CKV_AWS_7 · aws_kms_key</div>
+          <div class="ftitle">Key rotation not enabled</div>
+          <div class="fdesc"><code>enable_key_rotation</code> defaults to <code>false</code>. Omitting it fails this check. Required by PCI-DSS 3.6.4, CIS AWS Benchmark 3.8, and SOC 2 CC9.1.</div>
+        </div><span class="stag high">High</span></div>
+        <div class="diff-grid">
+          <div class="cp"><div class="ch bad">✗ Vulnerable: default is false</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl kw">resource </span><span class="cl st">"aws_kms_key"</span><span class="cl"> </span><span class="cl st">"bad"</span><span class="cl"> {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">  description = </span><span class="cl st">"app key"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl lb lc">  # enable_key_rotation not set → false</span></div>
+<div class="line"><span class="ln">4</span><span class="cl">}</span></div>
+          </div></div>
+          <div class="cp"><div class="ch good">✓ Fixed: one line</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl kw">resource </span><span class="cl st">"aws_kms_key"</span><span class="cl"> </span><span class="cl st">"good"</span><span class="cl"> {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">  description = </span><span class="cl st">"app key"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl lg">  enable_key_rotation = </span><span class="cl kw">true</span></div>
+<div class="line"><span class="ln">4</span><span class="cl">}</span></div>
+          </div></div>
+        </div>
+        <div class="ig">
+          <div class="ib"><div class="ibt">Rotation behaviour</div><ul>
+            <li>AWS rotates the backing key material automatically every 365 days</li>
+            <li>Key ARN and aliases are unchanged: no re-encryption needed for existing data</li>
+            <li>Old material is retained indefinitely for decryption of existing ciphertext</li>
+          </ul></div>
+          <div class="ib"><div class="ibt">Not supported for</div><ul>
+            <li>Asymmetric KMS keys (RSA, ECC): manage manually</li>
+            <li>HMAC keys</li>
+            <li>CloudHSM custom key stores: manage rotation via HSM tooling</li>
+          </ul></div>
+        </div>
+      </div>
+
+      <!-- CKV_AWS_227 -->
+      <div class="finding" id="kms-f-ckv227">
+        <div class="fhdr"><div class="fmeta">
+          <div class="fcheck">CKV_AWS_227 · aws_kms_key</div>
+          <div class="ftitle">KMS key explicitly disabled</div>
+          <div class="fdesc"><code>is_enabled</code> defaults to <code>true</code> so this only fires when you set it to <code>false</code>. A disabled key blocks all encrypt/decrypt operations for every service referencing it.</div>
+        </div><span class="stag high">High</span></div>
+        <div class="diff-grid">
+          <div class="cp"><div class="ch bad">✗ Flagged</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl kw">resource </span><span class="cl st">"aws_kms_key"</span><span class="cl"> </span><span class="cl st">"disabled"</span><span class="cl"> {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">  description = </span><span class="cl st">"app key"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl lb">  is_enabled  = </span><span class="cl lb kw">false</span></div>
+<div class="line"><span class="ln">4</span><span class="cl">}</span></div>
+          </div></div>
+          <div class="cp"><div class="ch good">✓ Fixed or omit entirely</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl kw">resource </span><span class="cl st">"aws_kms_key"</span><span class="cl"> </span><span class="cl st">"enabled"</span><span class="cl"> {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">  description = </span><span class="cl st">"app key"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl lg">  is_enabled  = </span><span class="cl kw">true</span><span class="cl lc"> # or omit: default is true</span></div>
+<div class="line"><span class="ln">4</span><span class="cl">}</span></div>
+          </div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PANEL: IAM / KMS ACTIONS
+══════════════════════════════════════ -->

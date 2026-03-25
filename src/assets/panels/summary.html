@@ -1,0 +1,87 @@
+<div class="panel" id="panel-summary">
+  <div class="sum-hero">
+    <h2>All-Passing Reference Template</h2>
+    <p>Example Terraform that passes every check in this reference: a real <code style="font-family:var(--mono);font-size:12px;background:var(--code-inline-bg-strong);padding:1px 5px;border-radius:3px">aws_kms_key</code>, an explicit key policy, and tight IAM documents for roles that use the key.</p>
+  </div>
+  <div class="sum-stats">
+    <div class="sum-stat"><div class="sum-stat-n r">9</div><div class="sum-stat-l">Critical checks passing</div></div>
+    <div class="sum-stat"><div class="sum-stat-n a">2</div><div class="sum-stat-l">High checks passing</div></div>
+    <div class="sum-stat"><div class="sum-stat-n b">4</div><div class="sum-stat-l">Resource types covered</div></div>
+    <div class="sum-stat"><div class="sum-stat-n g">14</div><div class="sum-stat-l">Total checks passing</div></div>
+  </div>
+  <div class="sum-code">
+    <div class="cp"><div class="ch neu" style="justify-content:space-between"><span>main.tf (full working example)</span><button class="copy-btn" onclick="cpCode('full-tpl',this)">Copy</button></div><div class="cb" id="full-tpl">
+<div class="line"><span class="ln">1</span><span class="cl kw">data </span><span class="cl st">"aws_caller_identity"</span><span class="cl"> </span><span class="cl st">"current"</span><span class="cl"> {}</span></div>
+<div class="line"><span class="ln">2</span><span class="cl"></span></div>
+<div class="line"><span class="ln">3</span><span class="cl kw">locals </span><span class="cl">{</span></div>
+<div class="line"><span class="ln">4</span><span class="cl">  account_id = data.aws_caller_identity.current.account_id</span></div>
+<div class="line"><span class="ln">5</span><span class="cl lc">  # KMS data-plane actions (meets CKV_AWS_49 and CKV_AWS_356)</span></div>
+<div class="line"><span class="ln">6</span><span class="cl ky">  kms_use_actions </span><span class="cl">= [</span></div>
+<div class="line"><span class="ln">7</span><span class="cl">    </span><span class="cl st">"kms:Decrypt"</span><span class="cl">, </span><span class="cl st">"kms:Encrypt"</span><span class="cl">, </span><span class="cl st">"kms:ReEncrypt*"</span><span class="cl">,</span></div>
+<div class="line"><span class="ln">8</span><span class="cl">    </span><span class="cl st">"kms:GenerateDataKey"</span><span class="cl">, </span><span class="cl st">"kms:GenerateDataKeyWithoutPlaintext"</span><span class="cl">,</span></div>
+<div class="line"><span class="ln">9</span><span class="cl">    </span><span class="cl st">"kms:DescribeKey"</span></div>
+<div class="line"><span class="ln">10</span><span class="cl">  ]</span></div>
+<div class="line"><span class="ln">11</span><span class="cl">}</span></div>
+<div class="line"><span class="ln">12</span><span class="cl"></span></div>
+<div class="line"><span class="ln">13</span><span class="cl lc"># ── KMS Key ────────────────────────────────────────────────────────</span></div>
+<div class="line"><span class="ln">14</span><span class="cl kw">resource </span><span class="cl st">"aws_kms_key"</span><span class="cl"> </span><span class="cl st">"this"</span><span class="cl"> {</span></div>
+<div class="line"><span class="ln">15</span><span class="cl">  description             = </span><span class="cl st">"application encryption key"</span></div>
+<div class="line"><span class="ln">16</span><span class="cl lg">  enable_key_rotation     = </span><span class="cl kw">true</span><span class="cl lc">                    # CKV_AWS_7 ✓</span></div>
+<div class="line"><span class="ln">17</span><span class="cl lg">  is_enabled              = </span><span class="cl kw">true</span><span class="cl lc">                    # CKV_AWS_227 ✓</span></div>
+<div class="line"><span class="ln">18</span><span class="cl">  deletion_window_in_days = 30</span></div>
+<div class="line"><span class="ln">19</span><span class="cl lg">  policy = data.aws_iam_policy_document.kms_key_policy.json   </span><span class="cl lc"># CKV2_AWS_6 ✓</span></div>
+<div class="line"><span class="ln">20</span><span class="cl">}</span></div>
+<div class="line"><span class="ln">21</span><span class="cl"></span></div>
+<div class="line"><span class="ln">22</span><span class="cl lc"># ── Key Policy ─────────────────────────────────────────────────────</span></div>
+<div class="line"><span class="ln">23</span><span class="cl kw">data </span><span class="cl st">"aws_iam_policy_document"</span><span class="cl"> </span><span class="cl st">"kms_key_policy"</span><span class="cl"> {</span></div>
+<div class="line"><span class="ln">24</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">25</span><span class="cl">    sid    = </span><span class="cl st">"KeyAdminOnly"</span></div>
+<div class="line"><span class="ln">26</span><span class="cl">    effect = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">27</span><span class="cl">    principals {</span></div>
+<div class="line"><span class="ln">28</span><span class="cl">      type        = </span><span class="cl st">"AWS"</span></div>
+<div class="line"><span class="ln">29</span><span class="cl lg">      identifiers = [</span><span class="cl st">"arn:aws:iam::${local.account_id}:role/infra-admin"</span><span class="cl lg">]  </span><span class="cl lc"># CKV_AWS_111 ✓</span></div>
+<div class="line"><span class="ln">30</span><span class="cl">    }</span></div>
+<div class="line"><span class="ln">31</span><span class="cl">    actions = [</span></div>
+<div class="line"><span class="ln">32</span><span class="cl lg">      </span><span class="cl st">"kms:Create*"</span><span class="cl">, </span><span class="cl st">"kms:Describe*"</span><span class="cl">, </span><span class="cl st">"kms:Enable*"</span><span class="cl">, </span><span class="cl st">"kms:List*"</span><span class="cl">,</span></div>
+<div class="line"><span class="ln">33</span><span class="cl">      </span><span class="cl st">"kms:Put*"</span><span class="cl">, </span><span class="cl st">"kms:Update*"</span><span class="cl">, </span><span class="cl st">"kms:Disable*"</span><span class="cl">, </span><span class="cl st">"kms:Delete*"</span><span class="cl">,</span></div>
+<div class="line"><span class="ln">34</span><span class="cl">      </span><span class="cl st">"kms:ScheduleKeyDeletion"</span><span class="cl">, </span><span class="cl st">"kms:CancelKeyDeletion"</span><span class="cl lc">  # CKV_AWS_356 ✓</span></div>
+<div class="line"><span class="ln">35</span><span class="cl">    ]</span></div>
+<div class="line"><span class="ln">36</span><span class="cl">    resources = [</span><span class="cl st">"*"</span><span class="cl">]</span></div>
+<div class="line"><span class="ln">37</span><span class="cl">  }</span></div>
+<div class="line"><span class="ln">38</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">39</span><span class="cl">    sid    = </span><span class="cl st">"AppUse"</span></div>
+<div class="line"><span class="ln">40</span><span class="cl">    effect = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">41</span><span class="cl">    principals { type = </span><span class="cl st">"AWS"</span><span class="cl">; identifiers = [module.app_role.arn] }</span></div>
+<div class="line"><span class="ln">42</span><span class="cl lg">    actions   = local.kms_use_actions</span></div>
+<div class="line"><span class="ln">43</span><span class="cl">    resources = [</span><span class="cl st">"*"</span><span class="cl">]</span></div>
+<div class="line"><span class="ln">44</span><span class="cl">  }</span></div>
+<div class="line"><span class="ln">45</span><span class="cl">}</span></div>
+<div class="line"><span class="ln">46</span><span class="cl"></span></div>
+<div class="line"><span class="ln">47</span><span class="cl lc"># ── IAM policy for consuming role ──────────────────────────────────</span></div>
+<div class="line"><span class="ln">48</span><span class="cl kw">data </span><span class="cl st">"aws_iam_policy_document"</span><span class="cl"> </span><span class="cl st">"app_kms"</span><span class="cl"> {</span></div>
+<div class="line"><span class="ln">49</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">50</span><span class="cl">    effect    = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">51</span><span class="cl lg">    actions   = local.kms_use_actions         </span><span class="cl lc"># CKV_AWS_49 ✓  CKV2_AWS_40 ✓</span></div>
+<div class="line"><span class="ln">52</span><span class="cl lg">    resources = [aws_kms_key.this.arn]        </span><span class="cl lc"># CKV_AWS_356 ✓  CKV_AWS_111 ✓</span></div>
+<div class="line"><span class="ln">53</span><span class="cl">  }</span></div>
+<div class="line"><span class="ln">54</span><span class="cl">}</span></div>
+    </div></div>
+
+    <div class="ps">
+      <div class="ps-l"><span class="ps-d p"></span><span style="color:var(--text3);min-width:110px;font-size:9px;letter-spacing:1px;text-transform:uppercase" class="ps-cat">KMS key</span><span style="color:var(--green);font-weight:600;min-width:120px">CKV_AWS_7</span><span style="color:var(--text3)">enable_key_rotation = true</span></div>
+      <div class="ps-l"><span class="ps-d p"></span><span class="ps-cat"></span><span style="color:var(--green);font-weight:600;min-width:120px">CKV_AWS_227</span><span style="color:var(--text3)">is_enabled = true</span></div>
+      <div class="ps-l"><span class="ps-d p"></span><span class="ps-cat"></span><span style="color:var(--green);font-weight:600;min-width:120px">CKV2_AWS_6</span><span style="color:var(--text3)">Explicit policy block defined</span></div>
+      <div class="ps-l"><span class="ps-d p"></span><span style="color:var(--text3);min-width:110px;font-size:9px;letter-spacing:1px;text-transform:uppercase" class="ps-cat">Key policy</span><span style="color:var(--green);font-weight:600;min-width:120px">CKV_AWS_111</span><span style="color:var(--text3)">Principal scoped to specific role ARN, not "*"</span></div>
+      <div class="ps-l"><span class="ps-d p"></span><span class="ps-cat"></span><span style="color:var(--green);font-weight:600;min-width:120px">CKV_AWS_356</span><span style="color:var(--text3)">Named KMS actions (no kms:* wildcard)</span></div>
+      <div class="ps-l"><span class="ps-d p"></span><span style="color:var(--text3);min-width:110px;font-size:9px;letter-spacing:1px;text-transform:uppercase" class="ps-cat">IAM policy</span><span style="color:var(--green);font-weight:600;min-width:120px">CKV_AWS_1</span><span style="color:var(--text3)">No Action:* Resource:* admin statement</span></div>
+      <div class="ps-l"><span class="ps-d p"></span><span class="ps-cat"></span><span style="color:var(--green);font-weight:600;min-width:120px">CKV_AWS_49</span><span style="color:var(--text3)">Uses a fixed list of KMS actions</span></div>
+      <div class="ps-l"><span class="ps-d p"></span><span class="ps-cat"></span><span style="color:var(--green);font-weight:600;min-width:120px">CKV_AWS_356</span><span style="color:var(--text3)">Resource scoped to specific key ARN</span></div>
+      <div class="ps-l"><span class="ps-d p"></span><span class="ps-cat"></span><span style="color:var(--green);font-weight:600;min-width:120px">CKV_AWS_111</span><span style="color:var(--text3)">Write actions constrained to key ARN</span></div>
+      <div class="ps-l"><span class="ps-d p"></span><span class="ps-cat"></span><span style="color:var(--green);font-weight:600;min-width:120px">CKV_AWS_107</span><span style="color:var(--text3)">No credentials exposure actions</span></div>
+      <div class="ps-l"><span class="ps-d p"></span><span class="ps-cat"></span><span style="color:var(--green);font-weight:600;min-width:120px">CKV_AWS_108</span><span style="color:var(--text3)">Data-read actions scoped to specific resource ARNs</span></div>
+      <div class="ps-l"><span class="ps-d p"></span><span class="ps-cat"></span><span style="color:var(--green);font-weight:600;min-width:120px">CKV_AWS_109</span><span style="color:var(--text3)">Permissions management actions scoped with condition</span></div>
+      <div class="ps-l"><span class="ps-d p"></span><span class="ps-cat"></span><span style="color:var(--green);font-weight:600;min-width:120px">CKV_AWS_110</span><span style="color:var(--text3)">Escalation vectors scoped to explicit role ARNs</span></div>
+      <div class="ps-l"><span class="ps-d p"></span><span class="ps-cat"></span><span style="color:var(--green);font-weight:600;min-width:120px">CKV2_AWS_40</span><span style="color:var(--text3)">No iam:* on managed policies</span></div>
+    </div>
+  </div>
+</div>

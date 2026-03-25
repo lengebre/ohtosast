@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Build
+dist/
+
+# Local env (secrets, overrides)
+.env
+.env.local
+.env.*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor / OS
+.DS_Store
+*.swp
+*.swo
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# TypeScript
+*.tsbuildinfo
+
+# Vite
+.vite/
+
+# Test / coverage (if added later)
+coverage/

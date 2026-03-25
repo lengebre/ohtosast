@@ -1,0 +1,150 @@
+<div class="panel" id="panel-iam">
+  <div class="stats-strip">
+    <div class="stat-pill active" onclick="showF('iam','ckv49');setStat(this,'iam')"><div class="sp-id">CKV_AWS_49</div><div class="sp-name">Wildcard actions</div><span class="sp-badge critical">Critical</span></div>
+    <div class="stat-pill" onclick="showF('iam','ckv356i');setStat(this,'iam')"><div class="sp-id">CKV_AWS_356</div><div class="sp-name">Wildcard resource</div><span class="sp-badge critical">Critical</span></div>
+    <div class="stat-pill bh" onclick="showF('iam','ckv111i');setStat(this,'iam')"><div class="sp-id">CKV_AWS_111</div><div class="sp-name">Write without constraints</div><span class="sp-badge high">High</span></div>
+  </div>
+  <div class="findings-layout">
+    <aside class="findings-aside">
+      <div class="aside-head">IAM Policy Checks</div>
+      <div class="nav-item active" id="iam-n-ckv49" onclick="showF('iam','ckv49');setNav('iam','ckv49')"><span class="nd c"></span><span class="nav-text">CKV_AWS_49</span></div>
+      <div class="nav-item" id="iam-n-ckv356i" onclick="showF('iam','ckv356i');setNav('iam','ckv356i')"><span class="nd c"></span><span class="nav-text">CKV_AWS_356</span></div>
+      <div class="nav-div"></div>
+      <div class="nav-item ha" id="iam-n-ckv111i" onclick="showF('iam','ckv111i');setNav('iam','ckv111i')"><span class="nd h"></span><span class="nav-text">CKV_AWS_111</span></div>
+    </aside>
+    <div class="findings-content">
+
+      <!-- CKV_AWS_49 -->
+      <div class="finding active" id="iam-f-ckv49">
+        <div class="fhdr"><div class="fmeta">
+          <div class="fcheck">CKV_AWS_49 · aws_iam_policy · aws_iam_policy_document · aws_iam_role_policy</div>
+          <div class="ftitle">IAM policy allows wildcard KMS actions (<code style="font-size:16px;background:none;padding:0">kms:*</code>)</div>
+          <div class="fdesc">Flags IAM policies that grant <code>Action = "kms:*"</code> or <code>Action = "*"</code>. This is about IAM trust policies and role policies, not the KMS key policy itself (those rules are in the KMS section).</div>
+        </div><span class="stag critical">Critical</span></div>
+        <div class="tabs"><div class="tab active" onclick="T(this,'i49','diff')">Diff</div><div class="tab" onclick="T(this,'i49','cko')">KICS output</div></div>
+        <div class="tc active" id="i49-diff">
+          <div class="diff-grid">
+            <div class="cp"><div class="ch bad">✗ Vulnerable</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl kw">data </span><span class="cl st">"aws_iam_policy_document"</span><span class="cl"> </span><span class="cl st">"bad"</span><span class="cl"> {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">3</span><span class="cl">    effect    = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">4</span><span class="cl lb">    actions   = [</span><span class="cl lb st">"kms:*"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">5</span><span class="cl">    resources = [</span><span class="cl st">"*"</span><span class="cl">]</span></div>
+<div class="line"><span class="ln">6</span><span class="cl">  }</span></div>
+<div class="line"><span class="ln">7</span><span class="cl">}</span></div>
+            </div></div>
+            <div class="cp"><div class="ch good">✓ Fixed: explicit actions + scoped resource</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl kw">data </span><span class="cl st">"aws_iam_policy_document"</span><span class="cl"> </span><span class="cl st">"good"</span><span class="cl"> {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">3</span><span class="cl">    effect  = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">4</span><span class="cl lg">    actions = [</span></div>
+<div class="line"><span class="ln">5</span><span class="cl">      </span><span class="cl st">"kms:Decrypt"</span><span class="cl">,</span></div>
+<div class="line"><span class="ln">6</span><span class="cl">      </span><span class="cl st">"kms:GenerateDataKey"</span><span class="cl">,</span></div>
+<div class="line"><span class="ln">7</span><span class="cl">      </span><span class="cl st">"kms:DescribeKey"</span></div>
+<div class="line"><span class="ln">8</span><span class="cl lg">    ]</span></div>
+<div class="line"><span class="ln">9</span><span class="cl lg">    resources = [aws_kms_key.this.arn]</span></div>
+<div class="line"><span class="ln">10</span><span class="cl">  }</span></div>
+<div class="line"><span class="ln">11</span><span class="cl">}</span></div>
+            </div></div>
+          </div>
+        </div>
+        <div class="tc" id="i49-cko"><div class="cko"><span class="cp-fail">Check: CKV_AWS_49: "Ensure no IAM policies documents allow '*' as a statement's actions"</span>
+<span class="cp-dim">	FAILED for resource: data.aws_iam_policy_document.bad</span>
+<span class="cp-dim">	File: iam.tf:1-7</span>
+<span class="cp-fail">	  4 |   actions = ["kms:*"]</span>
+<span class="cp-am">Passed checks: 0, Failed checks: 1, Skipped checks: 0</span></div></div>
+      </div>
+
+      <!-- CKV_AWS_356 IAM -->
+      <div class="finding" id="iam-f-ckv356i">
+        <div class="fhdr"><div class="fmeta">
+          <div class="fcheck">CKV_AWS_356 · aws_iam_policy · aws_iam_policy_document</div>
+          <div class="ftitle">IAM policy uses <code style="font-size:15px;background:none;padding:0">Resource = "*"</code> for KMS actions</div>
+          <div class="fdesc">Flags KMS permissions on <code>Resource = "*"</code> instead of a specific key ARN. AWS expects <code>"*"</code> for some legitimate calls, so KICS may report false positives here.</div>
+        </div><span class="stag critical">Critical</span></div>
+        <div class="alert info"><span>ℹ</span><span>Known false positive (Checkov #5148, #5305): some versions still flag <code>kms:GenerateDataKey</code> or <code>kms:Decrypt</code> on <code>Resource = "*"</code> even with a <code>Condition</code>. <code>kms:ListKeys</code> legitimately needs <code>"*"</code> in many setups. If your security team agrees, document a skip with a short justification.</span></div>
+        <div class="tabs"><div class="tab active" onclick="T(this,'i356','diff')">Diff</div><div class="tab" onclick="T(this,'i356','skip')">Skip annotation</div></div>
+        <div class="tc active" id="i356-diff">
+          <div class="diff-grid">
+            <div class="cp"><div class="ch bad">✗ Flagged</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">    actions   = [</span><span class="cl st">"kms:Decrypt"</span><span class="cl">]</span></div>
+<div class="line"><span class="ln">3</span><span class="cl lb">    resources = [</span><span class="cl lb st">"*"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">4</span><span class="cl">  }</span></div>
+            </div></div>
+            <div class="cp"><div class="ch good">✓ Scoped to key ARN</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">    actions   = [</span><span class="cl st">"kms:Decrypt"</span><span class="cl">]</span></div>
+<div class="line"><span class="ln">3</span><span class="cl lg">    resources = [aws_kms_key.this.arn]</span></div>
+<div class="line"><span class="ln">4</span><span class="cl">  }</span></div>
+            </div></div>
+          </div>
+          <div class="ig">
+            <div class="ib"><div class="ibt">Actions requiring Resource = "*" (use skip)</div><ul>
+              <li><code>kms:ListKeys</code>, <code>kms:ListAliases</code></li>
+              <li><code>kms:CreateKey</code>, <code>kms:GenerateRandom</code></li>
+            </ul></div>
+            <div class="ib"><div class="ibt">Actions safely scoped to key ARN</div><ul>
+              <li><code>kms:Decrypt</code>, <code>kms:Encrypt</code>, <code>kms:DescribeKey</code></li>
+              <li><code>kms:GenerateDataKey</code>, <code>kms:ReEncrypt*</code>, <code>kms:PutKeyPolicy</code></li>
+            </ul></div>
+          </div>
+        </div>
+        <div class="tc" id="i356-skip">
+          <div class="cp"><div class="ch neu">Skip annotation for actions that require "*"</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl kw">data </span><span class="cl st">"aws_iam_policy_document"</span><span class="cl"> </span><span class="cl st">"kms_list"</span><span class="cl"> {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl lc">  #checkov:skip=CKV_AWS_356:kms:ListKeys requires Resource="*" per AWS documentation</span></div>
+<div class="line"><span class="ln">3</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">4</span><span class="cl">    effect    = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">5</span><span class="cl">    actions   = [</span><span class="cl st">"kms:ListKeys"</span><span class="cl">, </span><span class="cl st">"kms:ListAliases"</span><span class="cl">]</span></div>
+<div class="line"><span class="ln">6</span><span class="cl">    resources = [</span><span class="cl st">"*"</span><span class="cl">]</span></div>
+<div class="line"><span class="ln">7</span><span class="cl">  }</span></div>
+<div class="line"><span class="ln">8</span><span class="cl">}</span></div>
+          </div></div>
+          <div class="ib" style="margin-top:12px"><div class="ibt">Skip annotation rules</div><ul>
+            <li>You must supply a justification; it appears in the HTML and JSON reports</li>
+            <li>Skips should be reviewed periodically; add a ticket reference if your org policy requires it</li>
+            <li>Do not use skips to hide real issues on <code>CKV_AWS_49</code> or <code>CKV_AWS_1</code></li>
+          </ul></div>
+        </div>
+      </div>
+
+      <!-- CKV_AWS_111 IAM -->
+      <div class="finding" id="iam-f-ckv111i">
+        <div class="fhdr"><div class="fmeta">
+          <div class="fcheck">CKV_AWS_111 · aws_iam_policy_document</div>
+          <div class="ftitle">IAM policy allows write access without constraints</div>
+          <div class="fdesc">Calls out powerful KMS APIs such as <code>kms:PutKeyPolicy</code> or <code>kms:DeleteKey</code> on <code>Resource = "*"</code> with no <code>Condition</code>. <code>kms:Decrypt</code> can be a false positive; see the info box above.</div>
+        </div><span class="stag high">High</span></div>
+        <div class="alert warn"><span>⚠</span><span>Known false positive (Checkov #5305): CKV_AWS_111 may fire on <code>kms:Decrypt</code> with a <code>Condition</code> block present. If the condition is valid, use a skip annotation with justification.</span></div>
+        <div class="diff-grid">
+          <div class="cp"><div class="ch bad">✗ Vulnerable</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">    effect  = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl lb">    actions = [</span><span class="cl lb st">"kms:PutKeyPolicy"</span><span class="cl lb">, </span><span class="cl lb st">"kms:DeleteKey"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">4</span><span class="cl lb">    resources = [</span><span class="cl lb st">"*"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">5</span><span class="cl lc">    # no Condition → FAILS CKV_AWS_111</span></div>
+<div class="line"><span class="ln">6</span><span class="cl">  }</span></div>
+            </div></div>
+          <div class="cp"><div class="ch good">✓ Fixed: scope + condition</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">    effect  = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl">    actions = [</span><span class="cl st">"kms:PutKeyPolicy"</span><span class="cl">, </span><span class="cl st">"kms:DeleteKey"</span><span class="cl">]</span></div>
+<div class="line"><span class="ln">4</span><span class="cl lg">    resources = [aws_kms_key.this.arn]</span></div>
+<div class="line"><span class="ln">5</span><span class="cl lg">    condition {</span></div>
+<div class="line"><span class="ln">6</span><span class="cl lg">      test     = </span><span class="cl st">"StringEquals"</span></div>
+<div class="line"><span class="ln">7</span><span class="cl lg">      variable = </span><span class="cl st">"aws:RequestedRegion"</span></div>
+<div class="line"><span class="ln">8</span><span class="cl lg">      values   = [</span><span class="cl st">"eu-west-2"</span><span class="cl lg">]</span></div>
+<div class="line"><span class="ln">9</span><span class="cl lg">    }</span></div>
+<div class="line"><span class="ln">10</span><span class="cl">  }</span></div>
+          </div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PANEL: IAM CRITICALS
+══════════════════════════════════════ -->

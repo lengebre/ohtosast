@@ -1,0 +1,313 @@
+<div class="panel" id="panel-iamcrit">
+  <div class="stats-strip">
+    <div class="stat-pill active" onclick="showF('iamcrit','ckv1');setStat(this,'iamcrit')"><div class="sp-id">CKV_AWS_1</div><div class="sp-name">Admin *:*</div><span class="sp-badge critical">Critical</span></div>
+    <div class="stat-pill" onclick="showF('iamcrit','ckv107');setStat(this,'iamcrit')"><div class="sp-id">CKV_AWS_107</div><div class="sp-name">Credentials exposure</div><span class="sp-badge critical">Critical</span></div>
+    <div class="stat-pill" onclick="showF('iamcrit','ckv108');setStat(this,'iamcrit')"><div class="sp-id">CKV_AWS_108</div><div class="sp-name">Data exfiltration</div><span class="sp-badge critical">Critical</span></div>
+    <div class="stat-pill" onclick="showF('iamcrit','ckv109');setStat(this,'iamcrit')"><div class="sp-id">CKV_AWS_109</div><div class="sp-name">Permissions management</div><span class="sp-badge critical">Critical</span></div>
+    <div class="stat-pill" onclick="showF('iamcrit','ckv110');setStat(this,'iamcrit')"><div class="sp-id">CKV_AWS_110</div><div class="sp-name">Privilege escalation</div><span class="sp-badge critical">Critical</span></div>
+    <div class="stat-pill" onclick="showF('iamcrit','ckv2aws40');setStat(this,'iamcrit')"><div class="sp-id">CKV2_AWS_40</div><div class="sp-name">Full IAM via iam:*</div><span class="sp-badge critical">Critical</span></div>
+  </div>
+  <div class="findings-layout">
+    <aside class="findings-aside">
+      <div class="aside-head">IAM Critical Checks</div>
+      <div class="nav-item active" id="iamcrit-n-ckv1" onclick="showF('iamcrit','ckv1');setNav('iamcrit','ckv1')"><span class="nd c"></span><span class="nav-text">CKV_AWS_1</span></div>
+      <div class="nav-item" id="iamcrit-n-ckv107" onclick="showF('iamcrit','ckv107');setNav('iamcrit','ckv107')"><span class="nd c"></span><span class="nav-text">CKV_AWS_107</span></div>
+      <div class="nav-item" id="iamcrit-n-ckv108" onclick="showF('iamcrit','ckv108');setNav('iamcrit','ckv108')"><span class="nd c"></span><span class="nav-text">CKV_AWS_108</span></div>
+      <div class="nav-item" id="iamcrit-n-ckv109" onclick="showF('iamcrit','ckv109');setNav('iamcrit','ckv109')"><span class="nd c"></span><span class="nav-text">CKV_AWS_109</span></div>
+      <div class="nav-item" id="iamcrit-n-ckv110" onclick="showF('iamcrit','ckv110');setNav('iamcrit','ckv110')"><span class="nd c"></span><span class="nav-text">CKV_AWS_110</span></div>
+      <div class="nav-div"></div>
+      <div class="nav-item" id="iamcrit-n-ckv2aws40" onclick="showF('iamcrit','ckv2aws40');setNav('iamcrit','ckv2aws40')"><span class="nd c"></span><span class="nav-text">CKV2_AWS_40</span></div>
+    </aside>
+    <div class="findings-content">
+
+      <!-- CKV_AWS_1 -->
+      <div class="finding active" id="iamcrit-f-ckv1">
+        <div class="fhdr"><div class="fmeta">
+          <div class="fcheck">CKV_AWS_1 · aws_iam_policy · aws_iam_policy_document · aws_iam_role_policy</div>
+          <div class="ftitle">Full admin: Action * on Resource *</div>
+          <div class="fdesc">The worst-case IAM pattern: an Allow with <code>Action = "*"</code> and <code>Resource = "*"</code> together. That is effectively full administrator access to the whole account.</div>
+        </div><span class="stag critical">Critical</span></div>
+        <div class="tabs"><div class="tab active" onclick="T(this,'ic1','diff')">Diff</div><div class="tab" onclick="T(this,'ic1','cko')">KICS output</div><div class="tab" onclick="T(this,'ic1','when')">Trigger conditions</div></div>
+        <div class="tc active" id="ic1-diff">
+          <div class="diff-grid">
+            <div class="cp"><div class="ch bad">✗ Vulnerable</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl kw">data </span><span class="cl st">"aws_iam_policy_document"</span><span class="cl"> </span><span class="cl st">"bad"</span><span class="cl"> {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">3</span><span class="cl">    effect    = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">4</span><span class="cl lb">    actions   = [</span><span class="cl lb st">"*"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">5</span><span class="cl lb">    resources = [</span><span class="cl lb st">"*"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">6</span><span class="cl">  }</span></div>
+<div class="line"><span class="ln">7</span><span class="cl">}</span></div>
+            </div></div>
+            <div class="cp"><div class="ch good">✓ Fixed: scoped service actions</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl kw">data </span><span class="cl st">"aws_iam_policy_document"</span><span class="cl"> </span><span class="cl st">"good"</span><span class="cl"> {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">3</span><span class="cl">    effect  = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">4</span><span class="cl lg">    actions = [</span><span class="cl st">"s3:GetObject"</span><span class="cl">, </span><span class="cl st">"s3:PutObject"</span><span class="cl">,</span></div>
+<div class="line"><span class="ln">5</span><span class="cl">              </span><span class="cl st">"ec2:DescribeInstances"</span><span class="cl lg">]</span></div>
+<div class="line"><span class="ln">6</span><span class="cl lg">    resources = [aws_s3_bucket.this.arn]</span></div>
+<div class="line"><span class="ln">7</span><span class="cl">  }</span></div>
+<div class="line"><span class="ln">8</span><span class="cl">}</span></div>
+            </div></div>
+          </div>
+          <div class="ig">
+            <div class="ib"><div class="ibt">Compliance mapping</div><ul>
+              <li>CIS AWS Benchmark 1.16: Ensure no admin-privilege IAM policies exist</li>
+              <li>SOC 2 CC6.3: Logical access limited to minimum necessary</li>
+              <li>PCI-DSS 7.1.2: Restrict access to individuals whose job requires it</li>
+            </ul></div>
+            <div class="ib"><div class="ibt">Also fires for these resource types</div><ul>
+              <li>Inline JSON in <code>aws_iam_policy.policy</code></li>
+              <li>Heredoc (<code>&lt;&lt;EOF</code>) policies with wildcard statements</li>
+              <li><code>aws_iam_role_policy</code> inline role policies</li>
+              <li>Related check: <code>CKV2_AWS_40</code> covers the <code>iam:*</code> variant</li>
+            </ul></div>
+          </div>
+        </div>
+        <div class="tc" id="ic1-cko"><div class="cko"><span class="cp-fail">Check: CKV_AWS_1: "Ensure IAM policies that allow full '*' administrative privileges are not created"</span>
+<span class="cp-dim">	FAILED for resource: data.aws_iam_policy_document.bad</span>
+<span class="cp-fail">	  4 |   actions   = ["*"]</span>
+<span class="cp-fail">	  5 |   resources = ["*"]</span>
+<span class="cp-am">Passed checks: 0, Failed checks: 1, Skipped checks: 0</span></div></div>
+        <div class="tc" id="ic1-when">
+          <div class="ig s"><div class="ib warn"><div class="ibt">Exact trigger conditions</div><ul>
+            <li>Effect = <code>"Allow"</code> AND Action = <code>"*"</code> AND Resource = <code>"*"</code>: all three together</li>
+            <li>Does NOT fire if Effect = <code>"Deny"</code>: a deny-all is a valid lockdown pattern</li>
+            <li>Does NOT fire for service-scoped wildcards like <code>"s3:*"</code>: only the bare <code>"*"</code> triggers CKV_AWS_1; CKV_AWS_49 covers service wildcards</li>
+            <li>Does NOT fire if <code>Resource</code> is a specific ARN even when <code>Action = "*"</code> (CKV_AWS_49 may still flag the action wildcard)</li>
+          </ul></div></div>
+        </div>
+      </div>
+
+      <!-- CKV_AWS_107 -->
+      <div class="finding" id="iamcrit-f-ckv107">
+        <div class="fhdr"><div class="fmeta">
+          <div class="fcheck">CKV_AWS_107 · aws_iam_policy · aws_iam_policy_document</div>
+          <div class="ftitle">IAM policy allows credentials exposure</div>
+          <div class="fdesc">Fires when a policy grants actions that return long-lived credentials or token material without a constraining <code>Condition</code>. Canonical triggers: <code>iam:CreateAccessKey</code>, <code>iam:UpdateAccessKey</code>, <code>sts:GetFederationToken</code> on <code>Resource = "*"</code>.</div>
+        </div><span class="stag critical">Critical</span></div>
+        <div class="tabs"><div class="tab active" onclick="T(this,'ic107','diff')">Diff</div><div class="tab" onclick="T(this,'ic107','cko')">KICS output</div><div class="tab" onclick="T(this,'ic107','actions')">Trigger actions</div></div>
+        <div class="tc active" id="ic107-diff">
+          <div class="diff-grid">
+            <div class="cp"><div class="ch bad">✗ Vulnerable</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">    effect  = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl lb">    actions = [</span><span class="cl st">"iam:CreateAccessKey"</span><span class="cl lb">,</span></div>
+<div class="line"><span class="ln">4</span><span class="cl lb">               </span><span class="cl st">"iam:UpdateAccessKey"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">5</span><span class="cl lb">    resources = [</span><span class="cl lb st">"*"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">6</span><span class="cl lc">    # no Condition</span></div>
+<div class="line"><span class="ln">7</span><span class="cl">  }</span></div>
+            </div></div>
+            <div class="cp"><div class="ch good">✓ Fixed: condition + scoped resource</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">    effect  = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl">    actions = [</span><span class="cl st">"iam:CreateAccessKey"</span><span class="cl">]</span></div>
+<div class="line"><span class="ln">4</span><span class="cl lg">    resources = [</span><span class="cl st">"arn:aws:iam::${local.account_id}:user/svc-*"</span><span class="cl lg">]</span></div>
+<div class="line"><span class="ln">5</span><span class="cl lg">    condition {</span></div>
+<div class="line"><span class="ln">6</span><span class="cl lg">      test     = </span><span class="cl st">"StringEquals"</span></div>
+<div class="line"><span class="ln">7</span><span class="cl lg">      variable = </span><span class="cl st">"iam:ResourceTag/managed-by"</span></div>
+<div class="line"><span class="ln">8</span><span class="cl lg">      values   = [</span><span class="cl st">"terraform"</span><span class="cl lg">]</span></div>
+<div class="line"><span class="ln">9</span><span class="cl lg">    }</span></div>
+<div class="line"><span class="ln">10</span><span class="cl">  }</span></div>
+            </div></div>
+          </div>
+        </div>
+        <div class="tc" id="ic107-cko"><div class="cko"><span class="cp-fail">Check: CKV_AWS_107: "Ensure IAM policies does not allow credentials exposure"</span>
+<span class="cp-dim">	FAILED for resource: data.aws_iam_policy_document.bad</span>
+<span class="cp-fail">	  3 |   actions = ["iam:CreateAccessKey", "iam:UpdateAccessKey"]</span>
+<span class="cp-fail">	  5 |   resources = ["*"]</span>
+<span class="cp-am">Passed checks: 0, Failed checks: 1, Skipped checks: 0</span></div></div>
+        <div class="tc" id="ic107-actions">
+          <div class="ig s"><div class="ib infob"><div class="ibt">Actions triggering CKV_AWS_107 when Resource = "*" without Condition</div><ul>
+            <li><code>iam:CreateAccessKey</code>: creates long-lived keys for any user</li>
+            <li><code>iam:UpdateAccessKey</code>: activates/deactivates access keys on any user</li>
+            <li><code>iam:CreateLoginProfile</code> / <code>iam:UpdateLoginProfile</code>: sets/changes console password</li>
+            <li><code>sts:GetFederationToken</code>: issues federated session tokens</li>
+            <li><code>sts:AssumeRoleWithWebIdentity</code> / <code>sts:AssumeRoleWithSAML</code></li>
+            <li>Prefer IAM roles + instance profiles or OIDC federation over long-lived access keys wherever possible</li>
+          </ul></div></div>
+        </div>
+      </div>
+
+      <!-- CKV_AWS_108 -->
+      <div class="finding" id="iamcrit-f-ckv108">
+        <div class="fhdr"><div class="fmeta">
+          <div class="fcheck">CKV_AWS_108 · aws_iam_policy · aws_iam_policy_document</div>
+          <div class="ftitle">IAM policy allows data exfiltration</div>
+          <div class="fdesc">Fires when data-read actions on sensitive services (<code>s3:GetObject</code>, <code>secretsmanager:GetSecretValue</code>, <code>ssm:GetParameter*</code>) are granted on <code>Resource = "*"</code> without a <code>Condition</code>. A role with this policy could read every secret, S3 object, and SSM parameter in the account.</div>
+        </div><span class="stag critical">Critical</span></div>
+        <div class="tabs"><div class="tab active" onclick="T(this,'ic108','diff')">Diff</div><div class="tab" onclick="T(this,'ic108','actions')">Trigger actions</div></div>
+        <div class="tc active" id="ic108-diff">
+          <div class="diff-grid">
+            <div class="cp"><div class="ch bad">✗ Vulnerable</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">    effect  = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl lb">    actions = [</span><span class="cl st">"secretsmanager:GetSecretValue"</span><span class="cl">,</span></div>
+<div class="line"><span class="ln">4</span><span class="cl">               </span><span class="cl st">"ssm:GetParameter"</span><span class="cl">, </span><span class="cl st">"s3:GetObject"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">5</span><span class="cl lb">    resources = [</span><span class="cl lb st">"*"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">6</span><span class="cl">  }</span></div>
+            </div></div>
+            <div class="cp"><div class="ch good">✓ Fixed: scoped to app prefix</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">    effect  = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl">    actions = [</span><span class="cl st">"secretsmanager:GetSecretValue"</span><span class="cl">]</span></div>
+<div class="line"><span class="ln">4</span><span class="cl lg">    resources = [</span></div>
+<div class="line"><span class="ln">5</span><span class="cl">      </span><span class="cl st">"arn:aws:secretsmanager:eu-west-2:${local.account_id}"</span></div>
+<div class="line"><span class="ln">6</span><span class="cl">      </span><span class="cl st">":secret:app/prod/*"</span></div>
+<div class="line"><span class="ln">7</span><span class="cl lg">    ]</span></div>
+<div class="line"><span class="ln">8</span><span class="cl">  }</span></div>
+            </div></div>
+          </div>
+        </div>
+        <div class="tc" id="ic108-actions">
+          <div class="ig s"><div class="ib infob"><div class="ibt">Actions triggering CKV_AWS_108 (data exfiltration) when Resource = "*"</div><ul>
+            <li><code>s3:GetObject</code>, <code>s3:GetObjectVersion</code></li>
+            <li><code>secretsmanager:GetSecretValue</code></li>
+            <li><code>ssm:GetParameter</code>, <code>ssm:GetParameters</code>, <code>ssm:GetParametersByPath</code>, <code>ssm:GetParameterHistory</code></li>
+            <li><code>rds:CopyDBSnapshot</code>, <code>rds:CreateDBSnapshot</code></li>
+            <li><code>glacier:GetObject</code>, <code>glacier:InitiateJob</code></li>
+            <li>Fix: always scope <code>resources</code> to specific ARN prefixes per app/environment</li>
+          </ul></div></div>
+        </div>
+      </div>
+
+      <!-- CKV_AWS_109 -->
+      <div class="finding" id="iamcrit-f-ckv109">
+        <div class="fhdr"><div class="fmeta">
+          <div class="fcheck">CKV_AWS_109 · aws_iam_policy · aws_iam_policy_document</div>
+          <div class="ftitle">IAM policy allows permissions management without constraints</div>
+          <div class="fdesc">Triggers when powerful IAM APIs (for example <code>iam:PutRolePolicy</code>, <code>iam:AttachRolePolicy</code>, <code>iam:CreatePolicy</code>) are allowed on <code>Resource = "*"</code> with no <code>Condition</code>. A caller could change other roles and escalate to full admin.</div>
+        </div><span class="stag critical">Critical</span></div>
+        <div class="tabs"><div class="tab active" onclick="T(this,'ic109','diff')">Diff</div><div class="tab" onclick="T(this,'ic109','actions')">Trigger actions</div></div>
+        <div class="tc active" id="ic109-diff">
+          <div class="diff-grid">
+            <div class="cp"><div class="ch bad">✗ Vulnerable</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">    effect  = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl lb">    actions = [</span><span class="cl st">"iam:PutRolePolicy"</span><span class="cl">,</span></div>
+<div class="line"><span class="ln">4</span><span class="cl">               </span><span class="cl st">"iam:AttachRolePolicy"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">5</span><span class="cl lb">    resources = [</span><span class="cl lb st">"*"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">6</span><span class="cl lc">    # can mutate any role's policy</span></div>
+<div class="line"><span class="ln">7</span><span class="cl">  }</span></div>
+            </div></div>
+            <div class="cp"><div class="ch good">✓ Fixed: path + PolicyARN condition</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">    effect  = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl">    actions = [</span><span class="cl st">"iam:PutRolePolicy"</span><span class="cl">]</span></div>
+<div class="line"><span class="ln">4</span><span class="cl lg">    resources = [</span><span class="cl st">"arn:aws:iam::${local.account_id}:role/app/*"</span><span class="cl lg">]</span></div>
+<div class="line"><span class="ln">5</span><span class="cl lg">    condition {</span></div>
+<div class="line"><span class="ln">6</span><span class="cl lg">      test     = </span><span class="cl st">"StringLike"</span></div>
+<div class="line"><span class="ln">7</span><span class="cl lg">      variable = </span><span class="cl st">"iam:PolicyARN"</span></div>
+<div class="line"><span class="ln">8</span><span class="cl lg">      values   = [</span><span class="cl st">"arn:aws:iam::${local.account_id}:policy/app/*"</span><span class="cl lg">]</span></div>
+<div class="line"><span class="ln">9</span><span class="cl lg">    }</span></div>
+<div class="line"><span class="ln">10</span><span class="cl">  }</span></div>
+            </div></div>
+          </div>
+        </div>
+        <div class="tc" id="ic109-actions">
+          <div class="ig s"><div class="ib infob"><div class="ibt">Actions triggering CKV_AWS_109 when Resource = "*" and no Condition</div><ul>
+            <li><code>iam:PutRolePolicy</code>: writes inline policy to any role</li>
+            <li><code>iam:AttachRolePolicy</code> / <code>iam:AttachUserPolicy</code> / <code>iam:AttachGroupPolicy</code></li>
+            <li><code>iam:CreatePolicy</code>, <code>iam:CreatePolicyVersion</code>, <code>iam:SetDefaultPolicyVersion</code></li>
+            <li><code>iam:PutGroupPolicy</code>, <code>iam:PutUserPolicy</code></li>
+            <li><code>iam:AddUserToGroup</code>: can silently add user to an admin group</li>
+            <li>Fix: scope <code>resources</code> to an IAM path prefix and add a <code>Condition</code> on <code>iam:PolicyARN</code> or <code>iam:PermissionsBoundary</code></li>
+          </ul></div></div>
+        </div>
+      </div>
+
+      <!-- CKV_AWS_110 -->
+      <div class="finding" id="iamcrit-f-ckv110">
+        <div class="fhdr"><div class="fmeta">
+          <div class="fcheck">CKV_AWS_110 · aws_iam_policy · aws_iam_policy_document</div>
+          <div class="ftitle">IAM policy allows privilege escalation</div>
+          <div class="fdesc">Different from CKV_AWS_109. Here the risk is chaining steps that look small alone (for example <code>sts:AssumeRole</code> on <code>Resource = "*"</code>, which lets someone assume powerful roles including admin).</div>
+        </div><span class="stag critical">Critical</span></div>
+        <div class="tabs"><div class="tab active" onclick="T(this,'ic110','diff')">Diff</div><div class="tab" onclick="T(this,'ic110','vectors')">Escalation vectors</div></div>
+        <div class="tc active" id="ic110-diff">
+          <div class="diff-grid">
+            <div class="cp"><div class="ch bad">✗ Vulnerable: unconstrained assume role</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">    effect  = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl lb">    actions = [</span><span class="cl lb st">"sts:AssumeRole"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">4</span><span class="cl lb">    resources = [</span><span class="cl lb st">"*"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">5</span><span class="cl lc">    # can assume ANY role inc. admin</span></div>
+<div class="line"><span class="ln">6</span><span class="cl">  }</span></div>
+            </div></div>
+            <div class="cp"><div class="ch good">✓ Fixed: explicit role ARNs only</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl">  statement {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">    effect  = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl">    actions = [</span><span class="cl st">"sts:AssumeRole"</span><span class="cl">]</span></div>
+<div class="line"><span class="ln">4</span><span class="cl lg">    resources = [</span></div>
+<div class="line"><span class="ln">5</span><span class="cl">      </span><span class="cl st">"arn:aws:iam::${local.account_id}:role/app-deploy"</span><span class="cl">,</span></div>
+<div class="line"><span class="ln">6</span><span class="cl">      </span><span class="cl st">"arn:aws:iam::${local.account_id}:role/app-read"</span></div>
+<div class="line"><span class="ln">7</span><span class="cl lg">    ]</span></div>
+<div class="line"><span class="ln">8</span><span class="cl">  }</span></div>
+            </div></div>
+          </div>
+          <div class="ig">
+            <div class="ib"><div class="ibt">CKV_AWS_109 vs CKV_AWS_110</div><ul>
+              <li><strong style="font-weight:600">CKV_AWS_109</strong>: changing another role&apos;s policy in one step</li>
+              <li><strong style="font-weight:600">CKV_AWS_110</strong>: smaller permissions that can be combined to reach admin-level access</li>
+              <li>Example chain: <code>iam:CreatePolicyVersion</code> → create permissive version of existing policy → <code>iam:SetDefaultPolicyVersion</code> → activate it silently</li>
+            </ul></div>
+            <div class="ib"><div class="ibt">Permissions boundary mitigation</div><ul>
+              <li>AWS Permissions Boundaries cap what a role can grant even if it can write policies</li>
+              <li>Require <code>iam:PermissionsBoundary</code> condition on all <code>iam:CreateRole</code> actions</li>
+              <li>Enforce via SCP at org level for defence-in-depth</li>
+            </ul></div>
+          </div>
+        </div>
+        <div class="tc" id="ic110-vectors">
+          <div class="ig s"><div class="ib warn"><div class="ibt">Known privilege escalation action vectors (trigger CKV_AWS_110)</div><ul>
+            <li><code>sts:AssumeRole</code> on <code>"*"</code>: assume any role including admin roles</li>
+            <li><code>iam:CreatePolicyVersion</code>: overwrite an existing policy to grant full admin</li>
+            <li><code>iam:SetDefaultPolicyVersion</code>: activate a previously created permissive version</li>
+            <li><code>iam:PassRole</code> on <code>"*"</code>: pass a privileged role to Lambda/EC2 to execute arbitrary code under that role</li>
+            <li><code>iam:CreateRole</code> + <code>iam:AttachRolePolicy</code> without path constraint: create a new admin role</li>
+            <li><code>lambda:UpdateFunctionCode</code> on a function running as an admin role: replace code to exfiltrate credentials</li>
+          </ul></div></div>
+        </div>
+      </div>
+
+      <!-- CKV2_AWS_40 -->
+      <div class="finding" id="iamcrit-f-ckv2aws40">
+        <div class="fhdr"><div class="fmeta">
+          <div class="fcheck">CKV2_AWS_40 · aws_iam_policy · aws_iam_role_policy</div>
+          <div class="ftitle">IAM managed policy grants full IAM privileges (<code style="font-size:15px;background:none;padding:0">iam:*</code>)</div>
+          <div class="fdesc">Related to CKV_AWS_1 but looks at <code>iam:*</code> on <code>Resource = "*"</code> in managed or inline role policies. That gives full control over IAM even if other AWS services are not wide open.</div>
+        </div><span class="stag critical">Critical</span></div>
+        <div class="alert warn"><span>⚠</span><span><code>CKV_AWS_1</code> flags <code>Action = "*"</code> (every AWS service). <code>CKV2_AWS_40</code> flags <code>iam:*</code> on all resources (full IAM API access). They are different checks and both can alert on the same policy.</span></div>
+        <div class="diff-grid">
+          <div class="cp"><div class="ch bad">✗ Vulnerable: iam:* on managed policy</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl kw">resource </span><span class="cl st">"aws_iam_policy"</span><span class="cl"> </span><span class="cl st">"bad"</span><span class="cl"> {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">  name   = </span><span class="cl st">"bad-iam-policy"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl">  policy = jsonencode({</span></div>
+<div class="line"><span class="ln">4</span><span class="cl">    Statement = [{ Effect = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">5</span><span class="cl lb">      Action   = [</span><span class="cl lb st">"iam:*"</span><span class="cl lb">]</span></div>
+<div class="line"><span class="ln">6</span><span class="cl lb">      Resource = </span><span class="cl lb st">"*"</span><span class="cl"> }]</span></div>
+<div class="line"><span class="ln">7</span><span class="cl">  })</span></div>
+<div class="line"><span class="ln">8</span><span class="cl">}</span></div>
+          </div></div>
+          <div class="cp"><div class="ch good">✓ Fixed: explicit read-only IAM actions</div><div class="cb">
+<div class="line"><span class="ln">1</span><span class="cl kw">resource </span><span class="cl st">"aws_iam_policy"</span><span class="cl"> </span><span class="cl st">"good"</span><span class="cl"> {</span></div>
+<div class="line"><span class="ln">2</span><span class="cl">  name   = </span><span class="cl st">"app-iam-read"</span></div>
+<div class="line"><span class="ln">3</span><span class="cl">  policy = jsonencode({</span></div>
+<div class="line"><span class="ln">4</span><span class="cl">    Statement = [{ Effect = </span><span class="cl st">"Allow"</span></div>
+<div class="line"><span class="ln">5</span><span class="cl lg">      Action = [</span><span class="cl st">"iam:GetRole"</span><span class="cl">, </span><span class="cl st">"iam:ListRoles"</span><span class="cl">,</span></div>
+<div class="line"><span class="ln">6</span><span class="cl">                </span><span class="cl st">"iam:GetPolicy"</span><span class="cl">, </span><span class="cl st">"iam:ListPolicies"</span><span class="cl lg">]</span></div>
+<div class="line"><span class="ln">7</span><span class="cl lg">      Resource = </span><span class="cl st">"*"</span><span class="cl lc"> # list ops require "*"</span></div>
+<div class="line"><span class="ln">8</span><span class="cl">    }]</span></div>
+<div class="line"><span class="ln">9</span><span class="cl">  })</span></div>
+<div class="line"><span class="ln">10</span><span class="cl">}</span></div>
+          </div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PANEL: ALL-PASSING TEMPLATE
+══════════════════════════════════════ -->
