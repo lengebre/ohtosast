@@ -1,13 +1,10 @@
-# Build with Vite and publish ./dist to GitHub Pages.
-# Enable: Repo Settings → Pages → Build and deployment → Source: GitHub Actions.
-
-name: Deploy to GitHub Pages
+# Pinned to stable action versions and Node 20 LTS for reproducible builds.
+# Actions: https://github.com/actions/*/releases | Node: https://nodejs.org/en/about/releases/
+name: kics-kms-reference
 
 on:
   push:
-    branches:
-      - main
-      - master
+    branches: ['main'] 
   workflow_dispatch:
 
 permissions:
@@ -16,7 +13,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: 'pages'
   cancel-in-progress: true
 
 jobs:
@@ -24,27 +21,33 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: npm
+          node-version: '20'
+          cache: 'npm'
 
-      - name: Install
+      - name: Install dependencies
         run: npm ci
 
-      - name: Build
+      - name: Run tests
+        run: npm run test
+
+      - name: Audit dependencies (OWASP A06)
+        run: npm run audit
+        continue-on-error: true
+
+      - name: Build for GitHub Pages
+        run: npm run build
         env:
           GITHUB_PAGES: 'true'
-          VITE_GITHUB_REPO_URL: https://github.com/${{ github.repository }}
-        run: npm run build
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4.0.0
         with:
-          path: dist
+          path: ./dist
 
   deploy:
     needs: build
@@ -55,4 +58,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v4.0.5
