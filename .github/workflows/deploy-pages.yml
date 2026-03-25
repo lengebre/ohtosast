@@ -26,7 +26,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -43,6 +43,8 @@ jobs:
         run: npm run build
         env:
           GITHUB_PAGES: 'true'
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          VITE_GITHUB_REPO_URL: https://github.com/${{ github.repository }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4.0.0
