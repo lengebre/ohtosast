@@ -2,7 +2,7 @@
  * Repository for “Report issue” and “Star on GitHub”.
  * Override at build time: VITE_GITHUB_REPO_URL=https://github.com/org/repo
  */
-const DEFAULT_REPO = 'https://github.com/mo/ohtosast';
+const DEFAULT_REPO = 'https://github.com/lengebre/ohtosast';
 
 function normalizeRepoUrl(url: string): string {
   return url.replace(/\/+$/, '');
