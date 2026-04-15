@@ -1,6 +1,6 @@
 # Pinned to stable action versions and Node 20 LTS for reproducible builds.
 # Actions: https://github.com/actions/*/releases | Node: https://nodejs.org/en/about/releases/
-name: kics-kms-reference
+name: aif-c01-visualizer
 
 on:
   push:
@@ -32,22 +32,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # - name: Run tests
-      #   run: npm run test
+      - name: Run tests
+        run: npm run test
 
-      # - name: Audit dependencies (OWASP A06)
-      #   run: npm run audit
-      #   continue-on-error: true
+      - name: Audit dependencies (OWASP A06)
+        run: npm run audit
+        continue-on-error: true
 
-      # Custom domain at site root: create repo variable PAGES_BASE = / (Settings → Variables).
-      # Otherwise assets load from /repo/ and the app shows a blank page on your domain.
       - name: Build for GitHub Pages
         run: npm run build
         env:
           GITHUB_PAGES: 'true'
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          VITE_GITHUB_REPO_URL: https://github.com/${{ github.repository }}
-          PAGES_BASE: ${{ vars.PAGES_BASE }}
+
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4.0.0
